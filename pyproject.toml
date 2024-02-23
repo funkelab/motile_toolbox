@@ -23,6 +23,7 @@ dependencies = [
   "matplotlib",
   "scikit-image",
   "tqdm",
+  "zarr,"
 ]
 
 [project.optional-dependencies]
