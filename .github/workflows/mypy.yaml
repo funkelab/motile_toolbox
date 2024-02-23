@@ -11,7 +11,14 @@ jobs:
         uses: actions/setup-python@v4
       - name: Setup checkout
         uses: actions/checkout@v4
+      - name: Install conda dependencies
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          python-version: 3.11
+          environment-file: conda_config.yml
+          channel-priority: true
       - name: mypy
+        shell: bash -el {0}  # this is necessary to activate the conda env
         run: |
           pip install ".[dev]"
           pip install --upgrade mypy
