@@ -23,7 +23,7 @@ dependencies = [
   "matplotlib",
   "scikit-image",
   "tqdm",
-  "zarr,"
+  "zarr",
 ]
 
 [project.optional-dependencies]
@@ -34,9 +34,12 @@ dev = [
   'mypy',
   'pdoc',
   'pre-commit',
-  'types-tqdm'
+  'types-tqdm',
 ]
 
 [project.urls]
 homepage = "https://github.com/funkelab/motile_toolbox"
 repository = "https://github.com/funkelab/motile_toolbox"
+
+[tool.coverage.run]
+omit = ["src/motile_toolbox/visualization/*"]
