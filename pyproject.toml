@@ -32,7 +32,8 @@ dev = [
   'black',
   'mypy',
   'pdoc',
-  'pre-commit'
+  'pre-commit',
+  'types-tqdm'
 ]
 
 [project.urls]
