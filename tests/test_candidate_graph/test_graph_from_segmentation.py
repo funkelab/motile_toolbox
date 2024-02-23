@@ -70,7 +70,7 @@ def test_graph_from_segmentation_invalid():
 
 
 def test_graph_from_segmentation_empty():
-    empty_graph = graph_from_segmentation(np.zeros((3, 10, 10, 10), dtype="int32"), 10)
+    empty_graph = graph_from_segmentation(np.zeros((3, 10, 10), dtype="int32"), 10)
     assert Counter(empty_graph.nodes) == Counter([])
 
 
