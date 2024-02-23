@@ -21,7 +21,7 @@ jobs:
       uses: conda-incubator/setup-miniconda@v3
       with:
           python-version: ${{ matrix.python-version }}
-          environment-file: conda_environment.yml
+          environment-file: conda_config.yml
           channel-priority: true
     - name: Install pip dependencies
       shell: bash -el {0}  # this is necessary to activate the conda env
