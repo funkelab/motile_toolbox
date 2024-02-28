@@ -20,15 +20,17 @@ def graph_from_segmentation(
     position_keys: tuple[str, ...] | list[str] = ("y", "x"),
     frame_key: str = "t",
 ):
-    """Construct a candidate graph from a segmentation. Nodes are placed at the centroid
+    """Construct a candidate graph from a segmentation array. Nodes are placed at the centroid
     of each segmentation and edges are added for all nodes in adjacent frames within
     max_edge_distance. The specified attributes are computed during construction.
-    Node ids are strings with format "{time frame}_{label id}".
+    Node ids are strings with format "{time}_{label id}".
 
     Args:
-        segmentation (np.ndarray): A 3 or 4 dimensional numpy array with time dimension first
-            and two or three position dimensions. If the position dims are not (y, x),
-            use `position_keys` to specify the names of the dimensions.
+        segmentation (np.ndarray): A 3 or 4 dimensional numpy array with integer labels
+            (0 is background, all pixels with value 1 belong to one cell, etc.).
+            The time dimension is first, followed by two or three position dimensions.
+            If the position dims are not (y, x), use `position_keys` to specify the names of
+            the dimensions.
         max_edge_distance (float): Maximum distance that objects can travel between frames. All
             nodes within this distance in adjacent frames will by connected with a candidate edge.
         attributes (tuple[str, ...], optional): Set of attributes to compute and add to graph.
