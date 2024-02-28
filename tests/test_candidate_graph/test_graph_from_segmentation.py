@@ -157,7 +157,7 @@ def test_add_cand_edges_2d(graph_2d):
 
 def test_add_cand_edges_3d(graph_3d):
     cand_graph = nx.create_empty_copy(graph_3d)
-    add_cand_edges(cand_graph, max_edge_distance=15)
+    add_cand_edges(cand_graph, max_edge_distance=15, position_keys=("z", "y", "x"))
     graph_3d.remove_edge("0_1", "1_1")
     assert Counter(list(cand_graph.edges)) == Counter(list(graph_3d.edges))
     for edge in cand_graph.edges:
