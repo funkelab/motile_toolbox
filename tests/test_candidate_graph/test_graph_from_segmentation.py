@@ -1,15 +1,17 @@
-from motile_toolbox.candidate_graph import graph_from_segmentation
-import pytest
-import numpy as np
-from skimage.draw import disk
 from collections import Counter
-import math
+
+import numpy as np
+import pytest
+from motile_toolbox.candidate_graph.graph_from_segmentation import (
+    graph_from_segmentation,
+)
+from skimage.draw import disk
 
 
 @pytest.fixture
 def segmentation_2d():
     frame_shape = (100, 100)
-    total_shape = (2,) + frame_shape
+    total_shape = (2, *frame_shape)
     segmentation = np.zeros(total_shape, dtype="int32")
     # make frame with one cell in center with label 1
     rr, cc = disk(center=(50, 50), radius=20, shape=(100, 100))
@@ -27,9 +29,9 @@ def segmentation_2d():
 
 
 def sphere(center, radius, shape):
-    distance = np.linalg.norm(
-        np.subtract(np.indices(shape).T, np.asarray(center)), axis=len(center)
-    )
+    assert len(center) == len(shape)
+    indices = np.moveaxis(np.indices(shape), 0, -1)  # last dim is the index
+    distance = np.linalg.norm(np.subtract(indices, np.asarray(center)), axis=-1)
     mask = distance <= radius
     return mask
 
@@ -37,7 +39,7 @@ def sphere(center, radius, shape):
 @pytest.fixture
 def segmentation_3d():
     frame_shape = (100, 100, 100)
-    total_shape = (2,) + frame_shape
+    total_shape = (2, *frame_shape)
     segmentation = np.zeros(total_shape, dtype="int32")
     # make frame with one cell in center with label 1
     mask = sphere(center=(50, 50, 50), radius=20, shape=frame_shape)
