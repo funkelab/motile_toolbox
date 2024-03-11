@@ -76,7 +76,6 @@ def nodes_from_segmentation(
             if "segmentation_id" in attributes:
                 attrs["segmentation_id"] = regionprop.label
             centroid = regionprop.centroid  # [z,] y, x
-            print(f"centroid: {centroid}")
             for label, value in zip(position_keys, centroid):
                 attrs[label] = value
             cand_graph.add_node(node_id, **attrs)
@@ -116,15 +115,12 @@ def add_cand_edges(
     if not node_frame_dict:
         node_frame_dict = {}
         for node, data in cand_graph.nodes(data=True):
-            print(data)
             t = data[frame_key]
             if t not in node_frame_dict:
                 node_frame_dict[t] = []
             node_frame_dict[t].append(node)
-    print(node_frame_dict)
     frames = sorted(node_frame_dict.keys())
     for frame in tqdm(frames):
-        print(frame)
         if frame + 1 not in node_frame_dict:
             continue
         next_nodes = node_frame_dict[frame + 1]

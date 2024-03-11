@@ -1,6 +1,7 @@
-from motile_toolbox.utils import loading_utils
 from collections import Counter
 from pathlib import Path
+
+from motile_toolbox.utils import loading_utils
 
 
 def test_load_csv_tracks():

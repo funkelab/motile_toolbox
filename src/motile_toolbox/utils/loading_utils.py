@@ -1,12 +1,10 @@
 import csv
+import logging
+from typing import Any, MutableMapping
 
 import networkx as nx
 import numpy as np
-import time
-from skimage.io import imread
 import zarr
-import logging
-from typing import MutableMapping, Any
 
 logger = logging.getLogger(__name__)
 
@@ -22,13 +20,14 @@ def load_csv_tracks(
     Args:
         tracks_path (str): path to tracks file
         frames (tuple, optional): Tuple of start frame, end frame to limit the tracks to
-            these time points. Includes start frame, excludes end frame. Defaults to None.
+            these time points. Includes start frame, excludes end frame. Defaults to
+            None.
 
     Returns: nx.DiGraph where nodes have all the attributes from the columns of the csv,
         and edges have no attributes. Edges go forward in time from parent to child.
     """
     graph = nx.DiGraph()
-    with open(tracks_path, "r") as f:
+    with open(tracks_path) as f:
         reader = csv.DictReader(f, delimiter="\t")
         # t	z	y	x	cell_id	parent_id	track_id	radius	name	div_state
         for row in reader:
@@ -45,7 +44,8 @@ def load_csv_tracks(
                 if (not frames) or time > frames[0]:
                     graph.add_edge(parent_id, cell_id)
     logger.info(
-        f"Loaded {graph.number_of_nodes()} nodes and {graph.number_of_edges()} edges from {tracks_path}."
+        f"Loaded {graph.number_of_nodes()} nodes and {graph.number_of_edges()} edges "
+        f"from {tracks_path}."
     )
     return graph
 
@@ -85,14 +85,16 @@ def load_cellulus_results(
 
     Args:
         path_to_zarr (str): Path to zarr containing cellulus results.
-        image_group (str, optional): Zarr group containing raw images. Defaults to "test/raw".
+        image_group (str, optional): Zarr group containing raw images. Defaults to
+            "test/raw".
         seg_group (str, optional): Zarr group containing segmentation.
             Defaults to "post-processed-segmentation".
-        seg_channel (int, optional): Channel of segmentation to use. Segmentation channels
-            correspond to levels in multi-hypothesis cellulus. Defaults to 0.
+        seg_channel (int, optional): Channel of segmentation to use. Segmentation
+            channels correspond to levels in multi-hypothesis cellulus. Defaults to 0.
 
     Returns:
-        tuple[np.ndarray, np.ndarray]: an array with t, z, y, x for raw images and segmentation results.
+        tuple[np.ndarray, np.ndarray]: an array with t, z, y, x for raw images and
+            segmentation results.
     """
     base = zarr.open(path_to_zarr, "r")
     images = base[image_group]
