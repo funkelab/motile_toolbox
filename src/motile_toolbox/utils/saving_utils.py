@@ -6,9 +6,9 @@ from motile_toolbox.candidate_graph import NodeAttr
 
 def relabel_segmentation(
     solution_nx_graph: nx.DiGraph,
-    segmentation: np.array,
+    segmentation: np.ndarray,
     frame_key="t",
-) -> np.array:
+) -> np.ndarray:
     """Relabel a segmentation based on tracking results so that nodes in same
     track share the same id. IDs do change at division.
 
@@ -16,12 +16,13 @@ def relabel_segmentation(
         solution_nx_graph (nx.DiGraph): Networkx graph with the solution to use
             for relabeling. Nodes not in graph will be removed from seg. Original
             segmentation ids have to be stored in the graph so we can map them back.
-        segmentation (np.array): Original segmentation with labels ids that correspond
+        segmentation (np.ndarray): Original segmentation with labels ids that correspond
             to segmentation id in graph.
         frame_key (str, optional): Time frame key in networkx graph. Defaults to "t".
 
     Returns:
-        np.array: Relabeled segmentation array where nodes in same track share same id.
+        np.ndarray: Relabeled segmentation array where nodes in same track share same
+            id.
     """
     tracked_masks = np.zeros_like(segmentation)
     id_counter = 1
