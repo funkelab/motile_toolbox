@@ -17,3 +17,4 @@ class EdgeAttr(Enum):
     """
 
     DISTANCE = "distance"
+    IOU = "iou"

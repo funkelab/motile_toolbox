@@ -87,6 +87,28 @@ def nodes_from_segmentation(
     return cand_graph, node_frame_dict
 
 
+def _compute_node_frame_dict(
+    cand_graph: nx.DiGraph, frame_key: str = "t"
+) -> dict[int, list[Any]]:
+    """Compute dictionary from time frames to node ids for candidate graph.
+
+    Args:
+        cand_graph (nx.DiGraph): A networkx graph
+        frame_key (str, optional): Attribute key that holds the time frame of each
+            node in cand_graph. Defaults to "t".
+
+    Returns:
+        dict[int, list[Any]]: A mapping from time frames to lists of node ids.
+    """
+    node_frame_dict: dict[int, list[Any]] = {}
+    for node, data in cand_graph.nodes(data=True):
+        t = data[frame_key]
+        if t not in node_frame_dict:
+            node_frame_dict[t] = []
+        node_frame_dict[t].append(node)
+    return node_frame_dict
+
+
 def add_cand_edges(
     cand_graph: nx.DiGraph,
     max_edge_distance: float,
@@ -94,6 +116,7 @@ def add_cand_edges(
     position_keys: tuple[str, ...] | list[str] = ("y", "x"),
     frame_key: str = "t",
     node_frame_dict: None | dict[int, list[Any]] = None,
+    segmentation: np.ndarray = None,
 ) -> None:
     """Add candidate edges to a candidate graph by connecting all nodes in adjacent
     frames that are closer than max_edge_distance. Also adds attributes to the edges.
@@ -104,8 +127,8 @@ def add_cand_edges(
         max_edge_distance (float): Maximum distance that objects can travel between
             frames. All nodes within this distance in adjacent frames will by connected
             with a candidate edge.
-        attributes (tuple[str, ...], optional): Set of attributes to compute and add to
-            graph.Valid attributes are: "distance". Defaults to ("distance",).
+        attributes (tuple[EdgeAttr, ...], optional): Set of attributes to compute and
+            add to graph. Defaults to (EdgeAttr.DISTANCE,).
         position_keys (tuple[str, ...], optional): What the position dimensions of nodes
             in the candidate graph are labeled. Defaults to ("y", "x").
         frame_key (str, optional): The label of the time dimension in the candidate
@@ -113,14 +136,12 @@ def add_cand_edges(
         node_frame_dict (dict[int, list[Any]] | None, optional): A mapping from frames
             to node ids. If not provided, it will be computed from cand_graph. Defaults
             to None.
+        segmentation (np.ndarray, optional): The segmentation array for optionally
+            computing attributes such as IOU. Defaults to None.
     """
     if not node_frame_dict:
-        node_frame_dict = {}
-        for node, data in cand_graph.nodes(data=True):
-            t = data[frame_key]
-            if t not in node_frame_dict:
-                node_frame_dict[t] = []
-            node_frame_dict[t].append(node)
+        node_frame_dict = _compute_node_frame_dict(cand_graph, frame_key=frame_key)
+
     frames = sorted(node_frame_dict.keys())
     for frame in tqdm(frames):
         if frame + 1 not in node_frame_dict:
@@ -130,15 +151,54 @@ def add_cand_edges(
             _get_location(cand_graph.nodes[n], position_keys=position_keys)
             for n in next_nodes
         ]
+        if EdgeAttr.IOU in attributes:
+            if segmentation is None:
+                raise ValueError("Can't compute IOU without segmentation.")
+            ious = compute_ious(segmentation[frame], segmentation[frame + 1])
         for node in node_frame_dict[frame]:
             loc = _get_location(cand_graph.nodes[node], position_keys=position_keys)
             for next_id, next_loc in zip(next_nodes, next_locs):
                 dist = math.dist(next_loc, loc)
-                attrs = {}
-                if EdgeAttr.DISTANCE in attributes:
-                    attrs[EdgeAttr.DISTANCE.value] = dist
                 if dist <= max_edge_distance:
+                    attrs = {}
+                    if EdgeAttr.DISTANCE in attributes:
+                        attrs[EdgeAttr.DISTANCE.value] = dist
+                    if EdgeAttr.IOU in attributes:
+                        node_seg_id = cand_graph.nodes[node][NodeAttr.SEG_ID.value]
+                        next_seg_id = cand_graph.nodes[next_id][NodeAttr.SEG_ID.value]
+                        attrs[EdgeAttr.IOU.value] = ious.get(node_seg_id, {}).get(
+                            next_seg_id, 0
+                        )
                     cand_graph.add_edge(node, next_id, **attrs)
+
+
+def compute_ious(frame1: np.ndarray, frame2: np.ndarray) -> dict[int, dict[int, float]]:
+    """Compute label IOUs between two label arrays of the same shape. Ignores background
+    (label 0).
+
+    Args:
+        frame1 (np.ndarray): Array with integer labels
+        frame2 (np.ndarray): Array with integer labels
+
+    Returns:
+        dict[int, dict[int, float]]: Dictionary from labels in frame 1 to labels in
+            frame 2 to iou values. Nodes that have no overlap are not included.
+    """
+    values, counts = np.unique(
+        np.array([frame1.flatten(), frame2.flatten()]), axis=1, return_counts=True
+    )
+    iou_dict: dict[int, dict[int, float]] = {}
+    for index in range(values.shape[1]):
+        pair = values[:, index]
+        intersection = counts[index]
+        if 0.0 in pair:
+            continue
+        id1, id2 = pair
+        union = np.logical_or(frame1 == id1, frame2 == id2).sum()
+        if id1 not in iou_dict:
+            iou_dict[id1] = {}
+        iou_dict[id1][id2] = intersection / union
+    return iou_dict
 
 
 def graph_from_segmentation(
@@ -201,6 +261,7 @@ def graph_from_segmentation(
         attributes=edge_attributes,
         position_keys=position_keys,
         node_frame_dict=node_frame_dict,
+        segmentation=segmentation,
     )
 
     logger.info(f"Candidate edges: {cand_graph.number_of_edges()}")
