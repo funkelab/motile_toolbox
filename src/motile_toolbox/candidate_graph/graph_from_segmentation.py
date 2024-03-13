@@ -116,7 +116,7 @@ def add_cand_edges(
     position_keys: tuple[str, ...] | list[str] = ("y", "x"),
     frame_key: str = "t",
     node_frame_dict: None | dict[int, list[Any]] = None,
-    segmentation: np.ndarray = None,
+    segmentation: None | np.ndarray = None,
 ) -> None:
     """Add candidate edges to a candidate graph by connecting all nodes in adjacent
     frames that are closer than max_edge_distance. Also adds attributes to the edges.
