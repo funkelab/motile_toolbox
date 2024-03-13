@@ -3,6 +3,7 @@ from collections import Counter
 import networkx as nx
 import numpy as np
 import pytest
+from motile_toolbox.candidate_graph import NodeAttr
 from motile_toolbox.candidate_graph.graph_from_segmentation import (
     add_cand_edges,
     graph_from_segmentation,
@@ -132,7 +133,7 @@ def test_nodes_from_segmentation_3d(segmentation_3d):
     # test with 3D segmentation
     node_graph, node_frame_dict = nodes_from_segmentation(
         segmentation=segmentation_3d,
-        attributes=["segmentation_id"],
+        attributes=[NodeAttr.SEG_ID],
         position_keys=("pos_z", "pos_y", "pos_x"),
     )
     assert Counter(list(node_graph.nodes)) == Counter(["0_1", "1_1", "1_2"])
