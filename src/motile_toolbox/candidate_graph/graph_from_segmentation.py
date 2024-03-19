@@ -66,8 +66,8 @@ def nodes_from_segmentation(
     cand_graph = nx.DiGraph()
     # also construct a dictionary from time frame to node_id for efficiency
     node_frame_dict = {}
-
-    for t in range(len(segmentation)):
+    print("Extracting nodes from segmentaiton")
+    for t in tqdm(range(len(segmentation))):
         nodes_in_frame = []
         props = regionprops(segmentation[t])
         for regionprop in props:
@@ -139,6 +139,7 @@ def add_cand_edges(
         segmentation (np.ndarray, optional): The segmentation array for optionally
             computing attributes such as IOU. Defaults to None.
     """
+    print("Extracting candidate edges")
     if not node_frame_dict:
         node_frame_dict = _compute_node_frame_dict(cand_graph, frame_key=frame_key)
 
@@ -184,17 +185,24 @@ def compute_ious(frame1: np.ndarray, frame2: np.ndarray) -> dict[int, dict[int, 
         dict[int, dict[int, float]]: Dictionary from labels in frame 1 to labels in
             frame 2 to iou values. Nodes that have no overlap are not included.
     """
-    values, counts = np.unique(
-        np.array([frame1.flatten(), frame2.flatten()]), axis=1, return_counts=True
-    )
+    frame1 = frame1.flatten()
+    frame2 = frame2.flatten()
+    # get indices where both are not zero (ignore background)
+    # this speeds up computation significantly
+    non_zero_indices = np.logical_and(frame1, frame2)
+    flattened_stacked = np.array([frame1[non_zero_indices], frame2[non_zero_indices]])
+
+    values, counts = np.unique(flattened_stacked, axis=1, return_counts=True)
+    frame1_values, frame1_counts = np.unique(frame1, return_counts=True)
+    frame1_label_sizes = dict(zip(frame1_values, frame1_counts))
+    frame2_values, frame2_counts = np.unique(frame2, return_counts=True)
+    frame2_label_sizes = dict(zip(frame2_values, frame2_counts))
     iou_dict: dict[int, dict[int, float]] = {}
     for index in range(values.shape[1]):
         pair = values[:, index]
         intersection = counts[index]
-        if 0.0 in pair:
-            continue
         id1, id2 = pair
-        union = np.logical_or(frame1 == id1, frame2 == id2).sum()
+        union = frame1_label_sizes[id1] + frame2_label_sizes[id2] - intersection
         if id1 not in iou_dict:
             iou_dict[id1] = {}
         iou_dict[id1][id2] = intersection / union
@@ -249,6 +257,7 @@ def graph_from_segmentation(
             f"({segmentation.ndim - 1})"
         )
     # add nodes
+
     cand_graph, node_frame_dict = nodes_from_segmentation(
         segmentation, node_attributes, position_keys=position_keys, frame_key=frame_key
     )
