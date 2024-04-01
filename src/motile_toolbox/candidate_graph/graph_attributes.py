@@ -6,10 +6,11 @@ class NodeAttr(Enum):
     Note: Motile can flexibly support any custom attributes. The toolbox provides
     implementations of commonly used ones, listed here.
     """
+
     POS = "pos"
     TIME = "time"
     SEG_ID = "seg_id"
-    SEG_HYPOTHESIS = "seg_hypo"
+    SEG_HYPO = "seg_hypo"
 
 
 class EdgeAttr(Enum):

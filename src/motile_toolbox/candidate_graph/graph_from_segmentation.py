@@ -14,15 +14,15 @@ logger = logging.getLogger(__name__)
 
 
 def _get_node_id(time: int, label_id: int, hypothesis_id: int | None = None) -> str:
-
-    if hypothesis_id:
+    if hypothesis_id is not None:
+        print(hypothesis_id)
         return f"{time}_{hypothesis_id}_{label_id}"
     else:
         return f"{time}_{label_id}"
 
 
 def nodes_from_segmentation(
-    segmentation: np.ndarray,
+    segmentation: np.ndarray, hypo_id: int | None = None
 ) -> tuple[nx.DiGraph, dict[int, list[Any]]]:
     """Extract candidate nodes from a segmentation. Also computes specified attributes.
     Returns a networkx graph with only nodes, and also a dictionary from frames to
@@ -32,6 +32,9 @@ def nodes_from_segmentation(
         segmentation (np.ndarray): A 3 or 4 dimensional numpy array with integer labels
             (0 is background, all pixels with value 1 belong to one cell, etc.). The
             time dimension is first, followed by two or three position dimensions.
+        hypo_id (int | None, optional): An id to identify which layer of the multi-
+            hypothesis segmentation this is. Used to create node id, and is added
+            to each node if not None. Defaults to None.
 
     Returns:
         tuple[nx.DiGraph, dict[int, list[Any]]]: A candidate graph with only nodes,
@@ -45,11 +48,13 @@ def nodes_from_segmentation(
         nodes_in_frame = []
         props = regionprops(segmentation[t])
         for regionprop in props:
-            node_id = _get_node_id(t, regionprop.label)
+            node_id = _get_node_id(t, regionprop.label, hypothesis_id=hypo_id)
             attrs = {
                 NodeAttr.TIME.value: t,
             }
             attrs[NodeAttr.SEG_ID.value] = regionprop.label
+            if hypo_id is not None:
+                attrs[NodeAttr.SEG_HYPO.value] = hypo_id
             centroid = regionprop.centroid  # [z,] y, x
             attrs[NodeAttr.POS.value] = centroid
             cand_graph.add_node(node_id, **attrs)
@@ -59,9 +64,7 @@ def nodes_from_segmentation(
     return cand_graph, node_frame_dict
 
 
-def _compute_node_frame_dict(
-    cand_graph: nx.DiGraph
-) -> dict[int, list[Any]]:
+def _compute_node_frame_dict(cand_graph: nx.DiGraph) -> dict[int, list[Any]]:
     """Compute dictionary from time frames to node ids for candidate graph.
 
     Args:

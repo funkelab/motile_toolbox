@@ -35,6 +35,21 @@ def test_nodes_from_segmentation_2d(segmentation_2d):
     assert Counter(node_frame_dict[1]) == Counter(["1_1", "1_2"])
 
 
+def test_nodes_from_segmentation_2d_hypo(segmentation_2d):
+    # test with 2D segmentation
+    node_graph, node_frame_dict = nodes_from_segmentation(
+        segmentation=segmentation_2d, hypo_id=0
+    )
+    assert Counter(list(node_graph.nodes)) == Counter(["0_0_1", "1_0_1", "1_0_2"])
+    assert node_graph.nodes["1_0_1"][NodeAttr.SEG_ID.value] == 1
+    assert node_graph.nodes["1_0_1"][NodeAttr.SEG_HYPO.value] == 0
+    assert node_graph.nodes["1_0_1"][NodeAttr.TIME.value] == 1
+    assert node_graph.nodes["1_0_1"][NodeAttr.POS.value] == (20, 80)
+
+    assert node_frame_dict[0] == ["0_0_1"]
+    assert Counter(node_frame_dict[1]) == Counter(["1_0_1", "1_0_2"])
+
+
 def test_nodes_from_segmentation_3d(segmentation_3d):
     # test with 3D segmentation
     node_graph, node_frame_dict = nodes_from_segmentation(
