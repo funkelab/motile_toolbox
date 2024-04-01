@@ -8,7 +8,9 @@ from .utils import (
 
 
 def compute_conflict_sets(segmentation_frame: np.ndarray, time: int) -> list[set]:
-    """Segmentation in one frame only. Return
+    """Compute all sets of node ids that conflict with each other.
+    Note: Results might include redundant sets, for example {a, b, c} and {a, b}
+    might both appear in the results.
 
     Args:
         segmentation_frame (np.ndarray):  One frame of the multiple hypothesis
@@ -17,7 +19,8 @@ def compute_conflict_sets(segmentation_frame: np.ndarray, time: int) -> list[set
         time (int): Time frame, for computing node_ids.
 
     Returns:
-        list[set]: list of sets of node ids that overlap
+        list[set]: list of sets of node ids that overlap. Might include some sets
+            that are subsets of others.
     """
     flattened_segs = [seg.flatten() for seg in segmentation_frame]
 
