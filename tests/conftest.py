@@ -1,7 +1,7 @@
 import networkx as nx
 import numpy as np
 import pytest
-from motile_toolbox.candidate_graph import EdgeAttr, NodeAttr
+from motile_toolbox.candidate_graph.graph_attributes import EdgeAttr, NodeAttr
 from skimage.draw import disk
 
 
@@ -34,8 +34,9 @@ def multi_hypothesis_segmentation_2d():
     frame_shape = (100, 100)
     total_shape = (2, 2, *frame_shape)  # 2 time points, 2 hypotheses layers, H, W
     segmentation = np.zeros(total_shape, dtype="int32")
-    # make frame with one cell in center with label 1
+    # make frame with one cell in center with label 1 (hypo 1)
     rr0, cc0 = disk(center=(50, 50), radius=20, shape=frame_shape)
+    # make frame with one cell at (45, 45) with label 1 (hypo 2)
     rr1, cc1 = disk(center=(45, 45), radius=15, shape=frame_shape)
 
     segmentation[0, 0][rr0, cc0] = 1
@@ -106,7 +107,7 @@ def multi_hypothesis_graph_2d():
             {
                 NodeAttr.POS.value: (50, 50),
                 NodeAttr.TIME.value: 0,
-                NodeAttr.SEG_HYPOTHESIS.value: 0,
+                NodeAttr.SEG_HYPO.value: 0,
                 NodeAttr.SEG_ID.value: 1,
             },
         ),
@@ -115,7 +116,7 @@ def multi_hypothesis_graph_2d():
             {
                 NodeAttr.POS.value: (45, 45),
                 NodeAttr.TIME.value: 0,
-                NodeAttr.SEG_HYPOTHESIS.value: 1,
+                NodeAttr.SEG_HYPO.value: 1,
                 NodeAttr.SEG_ID.value: 1,
             },
         ),
@@ -124,7 +125,7 @@ def multi_hypothesis_graph_2d():
             {
                 NodeAttr.POS.value: (20, 80),
                 NodeAttr.TIME.value: 1,
-                NodeAttr.SEG_HYPOTHESIS.value: 0,
+                NodeAttr.SEG_HYPO.value: 0,
                 NodeAttr.SEG_ID.value: 1,
             },
         ),
@@ -142,7 +143,7 @@ def multi_hypothesis_graph_2d():
             {
                 NodeAttr.POS.value: (60, 45),
                 NodeAttr.TIME.value: 1,
-                NodeAttr.SEG_HYPOTHESIS.value: 0,
+                NodeAttr.SEG_HYPO.value: 0,
                 NodeAttr.SEG_ID.value: 2,
             },
         ),
@@ -151,7 +152,7 @@ def multi_hypothesis_graph_2d():
             {
                 NodeAttr.POS.value: (55, 40),
                 NodeAttr.TIME.value: 1,
-                NodeAttr.SEG_HYPOTHESIS.value: 1,
+                NodeAttr.SEG_HYPO.value: 1,
                 NodeAttr.SEG_ID.value: 2,
             },
         ),
@@ -293,7 +294,7 @@ def multi_hypothesis_graph_3d():
             {
                 NodeAttr.POS.value: (50, 50, 50),
                 NodeAttr.TIME.value: 0,
-                NodeAttr.SEG_HYPOTHESIS.value: 0,
+                NodeAttr.SEG_HYPO.value: 0,
                 NodeAttr.SEG_ID.value: 1,
             },
         ),
@@ -302,7 +303,7 @@ def multi_hypothesis_graph_3d():
             {
                 NodeAttr.POS.value: (45, 50, 55),
                 NodeAttr.TIME.value: 1,
-                NodeAttr.SEG_HYPOTHESIS.value: 1,
+                NodeAttr.SEG_HYPO.value: 1,
                 NodeAttr.SEG_ID.value: 1,
             },
         ),
@@ -311,7 +312,7 @@ def multi_hypothesis_graph_3d():
             {
                 NodeAttr.POS.value: (20, 50, 80),
                 NodeAttr.TIME.value: 1,
-                NodeAttr.SEG_HYPOTHESIS.value: 0,
+                NodeAttr.SEG_HYPO.value: 0,
                 NodeAttr.SEG_ID.value: 1,
             },
         ),
@@ -320,7 +321,7 @@ def multi_hypothesis_graph_3d():
             {
                 NodeAttr.POS.value: (60, 50, 45),
                 NodeAttr.TIME.value: 1,
-                NodeAttr.SEG_HYPOTHESIS.value: 0,
+                NodeAttr.SEG_HYPO.value: 0,
                 NodeAttr.SEG_ID.value: 2,
             },
         ),
@@ -329,7 +330,7 @@ def multi_hypothesis_graph_3d():
             {
                 NodeAttr.POS.value: (15, 50, 70),
                 NodeAttr.TIME.value: 1,
-                NodeAttr.SEG_HYPOTHESIS.value: 1,
+                NodeAttr.SEG_HYPO.value: 1,
                 NodeAttr.SEG_ID.value: 1,
             },
         ),

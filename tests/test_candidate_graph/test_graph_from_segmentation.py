@@ -3,8 +3,8 @@ from collections import Counter
 import networkx as nx
 import numpy as np
 import pytest
-from motile_toolbox.candidate_graph import EdgeAttr, NodeAttr
-from motile_toolbox.candidate_graph.graph_from_segmentation import (
+from motile_toolbox.candidate_graph import (
+    EdgeAttr, NodeAttr,
     add_cand_edges,
     graph_from_segmentation,
     nodes_from_segmentation,

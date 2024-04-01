@@ -5,10 +5,12 @@ import numpy as np
 from tqdm import tqdm
 
 from .graph_attributes import EdgeAttr, NodeAttr
-from .graph_from_segmentation import _get_node_id
+from .utils import get_node_id
 
 
-def compute_ious(frame1: np.ndarray, frame2: np.ndarray) -> dict[int, dict[int, float]]:
+def _compute_ious(
+    frame1: np.ndarray, frame2: np.ndarray
+) -> dict[int, dict[int, float]]:
     """Compute label IOUs between two label arrays of the same shape. Ignores background
     (label 0).
 
@@ -55,7 +57,7 @@ def add_iou(cand_graph: nx.DiGraph, segmentation: np.ndarray, node_frame_dict) -
     for frame in tqdm(frames):
         if frame + 1 not in node_frame_dict:
             continue
-        ious = compute_ious(segmentation[frame], segmentation[frame + 1])
+        ious = _compute_ious(segmentation[frame], segmentation[frame + 1])
         next_nodes = node_frame_dict[frame + 1]
         for node_id in node_frame_dict[frame]:
             node_seg_id = cand_graph.nodes[node_id][NodeAttr.SEG_ID.value]
@@ -83,14 +85,14 @@ def add_multihypo_iou(
         # construct dictionary of ious between node_ids in frame 1 and frame 2
         ious: dict[str, dict[str, float]] = {}
         for hypo1, hypo2 in combinations(range(num_hypotheses), 2):
-            hypo_ious = compute_ious(
+            hypo_ious = _compute_ious(
                 segmentation[frame][hypo1], segmentation[frame + 1][hypo2]
             )
             for segid, intersecting_labels in hypo_ious.items():
-                node_id = _get_node_id(frame, segid, hypo1)
+                node_id = get_node_id(frame, segid, hypo1)
                 ious[node_id] = {}
                 for segid2, iou in intersecting_labels.items():
-                    next_id = _get_node_id(frame + 1, segid2, hypo2)
+                    next_id = get_node_id(frame + 1, segid2, hypo2)
                     ious[node_id][next_id] = iou
         next_nodes = node_frame_dict[frame + 1]
         for node_id in node_frame_dict[frame]:

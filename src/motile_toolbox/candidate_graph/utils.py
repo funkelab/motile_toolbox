@@ -8,14 +8,12 @@ from skimage.measure import regionprops
 from tqdm import tqdm
 
 from .graph_attributes import EdgeAttr, NodeAttr
-from .iou import add_iou
 
 logger = logging.getLogger(__name__)
 
 
-def _get_node_id(time: int, label_id: int, hypothesis_id: int | None = None) -> str:
+def get_node_id(time: int, label_id: int, hypothesis_id: int | None = None) -> str:
     if hypothesis_id is not None:
-        print(hypothesis_id)
         return f"{time}_{hypothesis_id}_{label_id}"
     else:
         return f"{time}_{label_id}"
@@ -48,7 +46,7 @@ def nodes_from_segmentation(
         nodes_in_frame = []
         props = regionprops(segmentation[t])
         for regionprop in props:
-            node_id = _get_node_id(t, regionprop.label, hypothesis_id=hypo_id)
+            node_id = get_node_id(t, regionprop.label, hypothesis_id=hypo_id)
             attrs = {
                 NodeAttr.TIME.value: t,
             }
@@ -117,45 +115,3 @@ def add_cand_edges(
                 if dist <= max_edge_distance:
                     attrs = {EdgeAttr.DISTANCE.value: dist}
                     cand_graph.add_edge(node, next_id, **attrs)
-
-
-def graph_from_segmentation(
-    segmentation: np.ndarray,
-    max_edge_distance: float,
-    iou: bool = False,
-) -> nx.DiGraph:
-    """Construct a candidate graph from a segmentation array. Nodes are placed at the
-    centroid of each segmentation and edges are added for all nodes in adjacent frames
-    within max_edge_distance. The specified attributes are computed during construction.
-    Node ids are strings with format "{time}_{label id}".
-
-    Args:
-        segmentation (np.ndarray): A 3 or 4 dimensional numpy array with integer labels
-            (0 is background, all pixels with value 1 belong to one cell, etc.). The
-            time dimension is first, followed by two or three position dimensions. If
-            the position dims are not (y, x), use `position_keys` to specify the names
-            of the dimensions.
-        max_edge_distance (float): Maximum distance that objects can travel between
-            frames. All nodes within this distance in adjacent frames will by connected
-            with a candidate edge.
-        iou (bool, optional): Whether to include IOU on the candidate graph.
-            Defaults to False.
-
-    Returns:
-        nx.DiGraph: A candidate graph that can be passed to the motile solver.
-    """
-    # add nodes
-    cand_graph, node_frame_dict = nodes_from_segmentation(segmentation)
-    logger.info(f"Candidate nodes: {cand_graph.number_of_nodes()}")
-
-    # add edges
-    add_cand_edges(
-        cand_graph,
-        max_edge_distance=max_edge_distance,
-        node_frame_dict=node_frame_dict,
-    )
-    if iou:
-        add_iou(cand_graph, segmentation, node_frame_dict)
-
-    logger.info(f"Candidate edges: {cand_graph.number_of_edges()}")
-    return cand_graph

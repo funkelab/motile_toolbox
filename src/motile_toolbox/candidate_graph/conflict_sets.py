@@ -1,0 +1,41 @@
+from itertools import combinations
+
+import numpy as np
+
+from .utils import (
+    get_node_id,
+)
+
+
+def compute_conflict_sets(segmentation_frame: np.ndarray, time: int) -> list[set]:
+    """Segmentation in one frame only. Return
+
+    Args:
+        segmentation_frame (np.ndarray):  One frame of the multiple hypothesis
+            segmentation. Dimensions are (h, [z], y, x), where h is the number of
+            hypotheses.
+        time (int): Time frame, for computing node_ids.
+
+    Returns:
+        list[set]: list of sets of node ids that overlap
+    """
+    flattened_segs = [seg.flatten() for seg in segmentation_frame]
+
+    # get locations where at least two hypotheses have labels
+    # This approach may be inefficient, but likely doesn't matter compared to np.unique
+    conflict_indices = np.zeros(flattened_segs[0].shape, dtype=bool)
+    for seg1, seg2 in combinations(flattened_segs, 2):
+        non_zero_indices = np.logical_and(seg1, seg2)
+        conflict_indices = np.logical_or(conflict_indices, non_zero_indices)
+
+    flattened_stacked = np.array([seg[conflict_indices] for seg in flattened_segs])
+    values = np.unique(flattened_stacked, axis=1)
+
+    conflict_sets = []
+    for conflicting_labels in values:
+        id_set = set()
+        for hypo_id, label in enumerate(conflicting_labels):
+            if label != 0:
+                id_set.add(get_node_id(time, label, hypo_id))
+            conflict_sets.append(id_set)
+    return conflict_sets
