@@ -13,6 +13,21 @@ logger = logging.getLogger(__name__)
 
 
 def get_node_id(time: int, label_id: int, hypothesis_id: int | None = None) -> str:
+    """Construct a node id given the time frame, segmentation label id, and
+    optionally the hypothesis id. This function is not designed for candidate graphs
+    that do not come from segmentations, but could be used if there is a similar
+    "detection id" that is unique for all cells detected in a given frame.
+
+    Args:
+        time (int): The time frame the node is in
+        label_id (int): The label the node has in the segmentation.
+        hypothesis_id (int | None, optional): An integer representing which hypothesis
+            the segmentation came from, if applicable. Defaults to None.
+
+    Returns:
+        str: A string to use as the node id in the candidate graph. Assuming that label
+        ids are not repeated in the same time frame and hypothesis, it is unique.
+    """
     if hypothesis_id is not None:
         return f"{time}_{hypothesis_id}_{label_id}"
     else:
@@ -41,7 +56,7 @@ def nodes_from_segmentation(
     cand_graph = nx.DiGraph()
     # also construct a dictionary from time frame to node_id for efficiency
     node_frame_dict = {}
-    print("Extracting nodes from segmentaiton")
+    print("Extracting nodes from segmentation")
     for t in tqdm(range(len(segmentation))):
         nodes_in_frame = []
         props = regionprops(segmentation[t])

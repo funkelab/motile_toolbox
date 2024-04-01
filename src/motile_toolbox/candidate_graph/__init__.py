@@ -1,4 +1,4 @@
-from .compute_graph import compute_multi_seg_graph, graph_from_segmentation
+from .compute_graph import get_candidate_graph
 from .graph_attributes import EdgeAttr, NodeAttr
 from .graph_to_nx import graph_to_nx
 from .iou import add_iou, add_multihypo_iou
