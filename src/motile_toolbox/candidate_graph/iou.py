@@ -1,8 +1,11 @@
+from itertools import combinations
+
 import networkx as nx
 import numpy as np
 from tqdm import tqdm
 
 from .graph_attributes import EdgeAttr, NodeAttr
+from .graph_from_segmentation import _get_node_id
 
 
 def compute_ious(frame1: np.ndarray, frame2: np.ndarray) -> dict[int, dict[int, float]]:
@@ -58,5 +61,39 @@ def add_iou(cand_graph: nx.DiGraph, segmentation: np.ndarray, node_frame_dict) -
             node_seg_id = cand_graph.nodes[node_id][NodeAttr.SEG_ID.value]
             for next_id in next_nodes:
                 next_seg_id = cand_graph.nodes[next_id][NodeAttr.SEG_ID.value]
-                iou = ious.get(node_seg_id, {}).get( next_seg_id, 0)
+                iou = ious.get(node_seg_id, {}).get(next_seg_id, 0)
+                cand_graph.edges[(node_id, next_id)][EdgeAttr.IOU.value] = iou
+
+
+def add_multihypo_iou(
+    cand_graph: nx.DiGraph, segmentation: np.ndarray, node_frame_dict
+) -> None:
+    """Add IOU to the candidate graph for multi-hypothesis segmentations.
+
+    Args:
+        cand_graph (nx.DiGraph): Candidate graph with nodes and edges already populated
+        segmentation (np.ndarray): Multiple hypothesis segmentation. Dimensions
+            are (t, h, [z], y, x), where h is the number of hypotheses.
+    """
+    frames = sorted(node_frame_dict.keys())
+    num_hypotheses = segmentation.shape[1]
+    for frame in tqdm(frames):
+        if frame + 1 not in node_frame_dict:
+            continue
+        # construct dictionary of ious between node_ids in frame 1 and frame 2
+        ious: dict[str, dict[str, float]] = {}
+        for hypo1, hypo2 in combinations(range(num_hypotheses), 2):
+            hypo_ious = compute_ious(
+                segmentation[frame][hypo1], segmentation[frame + 1][hypo2]
+            )
+            for segid, intersecting_labels in hypo_ious.items():
+                node_id = _get_node_id(frame, segid, hypo1)
+                ious[node_id] = {}
+                for segid2, iou in intersecting_labels.items():
+                    next_id = _get_node_id(frame + 1, segid2, hypo2)
+                    ious[node_id][next_id] = iou
+        next_nodes = node_frame_dict[frame + 1]
+        for node_id in node_frame_dict[frame]:
+            for next_id in next_nodes:
+                iou = ious.get(node_id, {}).get(next_id, 0)
                 cand_graph.edges[(node_id, next_id)][EdgeAttr.IOU.value] = iou
