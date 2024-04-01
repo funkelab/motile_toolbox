@@ -134,7 +134,7 @@ def multi_hypothesis_graph_2d():
             {
                 NodeAttr.POS.value: (15, 75),
                 NodeAttr.TIME.value: 1,
-                NodeAttr.SEG_HYPOTHESIS.value: 1,
+                NodeAttr.SEG_HYPO.value: 1,
                 NodeAttr.SEG_ID.value: 1,
             },
         ),
