@@ -33,12 +33,12 @@ def compute_conflict_sets(segmentation_frame: np.ndarray, time: int) -> list[set
 
     flattened_stacked = np.array([seg[conflict_indices] for seg in flattened_segs])
     values = np.unique(flattened_stacked, axis=1)
-
+    values = np.transpose(values)
     conflict_sets = []
     for conflicting_labels in values:
         id_set = set()
         for hypo_id, label in enumerate(conflicting_labels):
             if label != 0:
                 id_set.add(get_node_id(time, label, hypo_id))
-            conflict_sets.append(id_set)
+        conflict_sets.append(id_set)
     return conflict_sets
