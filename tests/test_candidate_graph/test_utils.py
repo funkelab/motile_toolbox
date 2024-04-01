@@ -7,8 +7,10 @@ from motile_toolbox.candidate_graph import (
     EdgeAttr,
     NodeAttr,
     add_cand_edges,
+    get_node_id,
     nodes_from_segmentation,
 )
+from motile_toolbox.candidate_graph.utils import _compute_node_frame_dict
 
 
 # nodes_from_segmentation
@@ -83,3 +85,19 @@ def test_add_cand_edges_3d(graph_3d):
     assert Counter(list(cand_graph.edges)) == Counter(list(graph_3d.edges))
     for edge in cand_graph.edges:
         assert pytest.approx(cand_graph.edges[edge], abs=0.01) == graph_3d.edges[edge]
+
+
+def test_get_node_id():
+    assert get_node_id(0, 2) == "0_2"
+    assert get_node_id(2, 10, 3) == "2_3_10"
+
+
+def test_compute_node_frame_dict(graph_2d):
+    node_frame_dict = _compute_node_frame_dict(graph_2d)
+    expected = {
+        0: [
+            "0_1",
+        ],
+        1: ["1_1", "1_2"],
+    }
+    assert node_frame_dict == expected
