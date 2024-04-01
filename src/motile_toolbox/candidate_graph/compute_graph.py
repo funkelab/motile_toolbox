@@ -41,7 +41,7 @@ def get_candidate_graph(
     if multihypo:
         cand_graph = nx.DiGraph()
         num_frames = segmentation.shape[0]
-        node_frame_dict = {t: [] for t in range(num_frames)}
+        node_frame_dict: dict[int, list[Any]] = {t: [] for t in range(num_frames)}
         num_hypotheses = segmentation.shape[1]
         for hypo_id in range(num_hypotheses):
             hypothesis = segmentation[:, hypo_id]
