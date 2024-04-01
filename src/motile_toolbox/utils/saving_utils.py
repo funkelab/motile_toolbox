@@ -7,7 +7,6 @@ from motile_toolbox.candidate_graph import NodeAttr
 def relabel_segmentation(
     solution_nx_graph: nx.DiGraph,
     segmentation: np.ndarray,
-    frame_key="t",
 ) -> np.ndarray:
     """Relabel a segmentation based on tracking results so that nodes in same
     track share the same id. IDs do change at division.
@@ -33,7 +32,7 @@ def relabel_segmentation(
         soln_copy.remove_edges_from(out_edges)
     for node_set in nx.weakly_connected_components(soln_copy):
         for node in node_set:
-            time_frame = solution_nx_graph.nodes[node][frame_key]
+            time_frame = solution_nx_graph.nodes[node][NodeAttr.TIME.value]
             previous_seg_id = solution_nx_graph.nodes[node][NodeAttr.SEG_ID.value]
             previous_seg_mask = segmentation[time_frame] == previous_seg_id
             tracked_masks[time_frame][previous_seg_mask] = id_counter

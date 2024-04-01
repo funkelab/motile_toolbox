@@ -6,7 +6,8 @@ import pytest
 from motile_toolbox.candidate_graph import EdgeAttr, NodeAttr
 from motile_toolbox.candidate_graph.graph_from_segmentation import (
     add_cand_edges,
-    compute_ious,
+    _compute_node_frame_dict,
+    _get_node_id,
     graph_from_segmentation,
     nodes_from_segmentation,
 )
@@ -37,13 +38,13 @@ def segmentation_2d():
 def graph_2d():
     graph = nx.DiGraph()
     nodes = [
-        ("0_1", {"y": 50, "x": 50, "t": 0, "segmentation_id": 1}),
-        ("1_1", {"y": 20, "x": 80, "t": 1, "segmentation_id": 1}),
-        ("1_2", {"y": 60, "x": 45, "t": 1, "segmentation_id": 2}),
+        ("0_1", {NodeAttr.POS.value: (50, 50), NodeAttr.TIME.value: 0, NodeAttr.SEG_ID.value: 1}),
+        ("1_1", {NodeAttr.POS.value: (20, 80), NodeAttr.TIME.value: 1, NodeAttr.SEG_ID.value: 1}),
+        ("1_2", {NodeAttr.POS.value: (60, 45), NodeAttr.TIME.value: 1, NodeAttr.SEG_ID.value: 2}),
     ]
     edges = [
-        ("0_1", "1_1", {"distance": 42.43, "iou": 0.0}),
-        ("0_1", "1_2", {"distance": 11.18, "iou": 0.395}),
+        ("0_1", "1_1", {EdgeAttr.DISTANCE.value: 42.43, EdgeAttr.IOU.value: 0.0}),
+        ("0_1", "1_2", {EdgeAttr.DISTANCE.value: 11.18, EdgeAttr.IOU.value: 0.395}),
     ]
     graph.add_nodes_from(nodes)
     graph.add_edges_from(edges)
@@ -82,15 +83,15 @@ def segmentation_3d():
 def graph_3d():
     graph = nx.DiGraph()
     nodes = [
-        ("0_1", {"z": 50, "y": 50, "x": 50, "t": 0, "segmentation_id": 1}),
-        ("1_1", {"z": 20, "y": 50, "x": 80, "t": 1, "segmentation_id": 1}),
-        ("1_2", {"z": 60, "y": 50, "x": 45, "t": 1, "segmentation_id": 2}),
+        ("0_1", {NodeAttr.POS.value: (50, 50, 50), NodeAttr.TIME.value: 0, NodeAttr.SEG_ID.value: 1}),
+        ("1_1", {NodeAttr.POS.value: (20, 50, 80), NodeAttr.TIME.value: 1, NodeAttr.SEG_ID.value: 1}),
+        ("1_2", {NodeAttr.POS.value: (60, 50, 45), NodeAttr.TIME.value: 1, NodeAttr.SEG_ID.value: 2}),
     ]
     edges = [
         # math.dist([50, 50], [20, 80])
-        ("0_1", "1_1", {"distance": 42.43}),
+        ("0_1", "1_1", {EdgeAttr.DISTANCE.value: 42.43}),
         # math.dist([50, 50], [60, 45])
-        ("0_1", "1_2", {"distance": 11.18}),
+        ("0_1", "1_2", {EdgeAttr.DISTANCE.value: 11.18}),
     ]
     graph.add_nodes_from(nodes)
     graph.add_edges_from(edges)
@@ -113,36 +114,23 @@ def test_nodes_from_segmentation_2d(segmentation_2d):
         segmentation=segmentation_2d,
     )
     assert Counter(list(node_graph.nodes)) == Counter(["0_1", "1_1", "1_2"])
-    assert node_graph.nodes["1_1"]["segmentation_id"] == 1
-    assert node_graph.nodes["1_1"]["t"] == 1
-    assert node_graph.nodes["1_1"]["y"] == 20
-    assert node_graph.nodes["1_1"]["x"] == 80
+    assert node_graph.nodes["1_1"][NodeAttr.SEG_ID.value] == 1
+    assert node_graph.nodes["1_1"][NodeAttr.TIME.value] == 1
+    assert node_graph.nodes["1_1"][NodeAttr.POS.value] == (20, 80)
 
     assert node_frame_dict[0] == ["0_1"]
     assert Counter(node_frame_dict[1]) == Counter(["1_1", "1_2"])
-
-    # remove attrs
-    node_graph, _ = nodes_from_segmentation(
-        segmentation=segmentation_2d,
-        attributes=[],
-    )
-    assert Counter(list(node_graph.nodes)) == Counter(["0_1", "1_1", "1_2"])
-    assert "segmentation_id" not in node_graph.nodes["0_1"]
 
 
 def test_nodes_from_segmentation_3d(segmentation_3d):
     # test with 3D segmentation
     node_graph, node_frame_dict = nodes_from_segmentation(
         segmentation=segmentation_3d,
-        attributes=[NodeAttr.SEG_ID],
-        position_keys=("pos_z", "pos_y", "pos_x"),
     )
     assert Counter(list(node_graph.nodes)) == Counter(["0_1", "1_1", "1_2"])
-    assert node_graph.nodes["1_1"]["segmentation_id"] == 1
-    assert node_graph.nodes["1_1"]["t"] == 1
-    assert node_graph.nodes["1_1"]["pos_z"] == 20
-    assert node_graph.nodes["1_1"]["pos_y"] == 50
-    assert node_graph.nodes["1_1"]["pos_x"] == 80
+    assert node_graph.nodes["1_1"][NodeAttr.SEG_ID.value] == 1
+    assert node_graph.nodes["1_1"][NodeAttr.TIME.value] == 1
+    assert node_graph.nodes["1_1"][NodeAttr.POS.value] == (20, 50, 80)
 
     assert node_frame_dict[0] == ["0_1"]
     assert Counter(node_frame_dict[1]) == Counter(["1_1", "1_2"])
@@ -162,33 +150,11 @@ def test_add_cand_edges_2d(graph_2d):
 
 def test_add_cand_edges_3d(graph_3d):
     cand_graph = nx.create_empty_copy(graph_3d)
-    add_cand_edges(cand_graph, max_edge_distance=15, position_keys=("z", "y", "x"))
+    add_cand_edges(cand_graph, max_edge_distance=15)
     graph_3d.remove_edge("0_1", "1_1")
     assert Counter(list(cand_graph.edges)) == Counter(list(graph_3d.edges))
     for edge in cand_graph.edges:
         assert pytest.approx(cand_graph.edges[edge], abs=0.01) == graph_3d.edges[edge]
-
-
-# graph_from_segmentation
-def test_graph_from_segmentation_invalid():
-    # test invalid attributes
-    with pytest.raises(ValueError):
-        graph_from_segmentation(
-            np.zeros((3, 10, 10, 10), dtype="int32"),
-            10,
-            edge_attributes=["invalid"],
-        )
-    with pytest.raises(ValueError):
-        graph_from_segmentation(
-            np.zeros((3, 10, 10, 10), dtype="int32"),
-            10,
-            node_attributes=["invalid"],
-        )
-
-    with pytest.raises(ValueError):
-        graph_from_segmentation(
-            np.zeros((3, 10, 10), dtype="int32"), 100, position_keys=["z", "y", "x"]
-        )
 
 
 def test_graph_from_segmentation_2d(segmentation_2d, graph_2d):
@@ -196,13 +162,14 @@ def test_graph_from_segmentation_2d(segmentation_2d, graph_2d):
     cand_graph = graph_from_segmentation(
         segmentation=segmentation_2d,
         max_edge_distance=100,
-        edge_attributes=[EdgeAttr.DISTANCE, EdgeAttr.IOU],
+        iou=True,
     )
     assert Counter(list(cand_graph.nodes)) == Counter(list(graph_2d.nodes))
     assert Counter(list(cand_graph.edges)) == Counter(list(graph_2d.edges))
     for node in cand_graph.nodes:
         assert Counter(cand_graph.nodes[node]) == Counter(graph_2d.nodes[node])
     for edge in cand_graph.edges:
+        print(cand_graph.edges[edge])
         assert (
             pytest.approx(cand_graph.edges[edge][EdgeAttr.DISTANCE.value], abs=0.01)
             == graph_2d.edges[edge][EdgeAttr.DISTANCE.value]
@@ -219,7 +186,7 @@ def test_graph_from_segmentation_2d(segmentation_2d, graph_2d):
     )
     assert Counter(list(cand_graph.nodes)) == Counter(["0_1", "1_1", "1_2"])
     assert Counter(list(cand_graph.edges)) == Counter([("0_1", "1_2")])
-    assert cand_graph.edges[("0_1", "1_2")]["distance"] == pytest.approx(
+    assert cand_graph.edges[("0_1", "1_2")][EdgeAttr.DISTANCE.value] == pytest.approx(
         11.18, abs=0.01
     )
 
@@ -229,7 +196,6 @@ def test_graph_from_segmentation_3d(segmentation_3d, graph_3d):
     cand_graph = graph_from_segmentation(
         segmentation=segmentation_3d,
         max_edge_distance=100,
-        position_keys=("z", "y", "x"),
     )
     assert Counter(list(cand_graph.nodes)) == Counter(list(graph_3d.nodes))
     assert Counter(list(cand_graph.edges)) == Counter(list(graph_3d.edges))
@@ -237,35 +203,3 @@ def test_graph_from_segmentation_3d(segmentation_3d, graph_3d):
         assert Counter(cand_graph.nodes[node]) == Counter(graph_3d.nodes[node])
     for edge in cand_graph.edges:
         assert pytest.approx(cand_graph.edges[edge], abs=0.01) == graph_3d.edges[edge]
-
-
-def test_compute_ious_2d(segmentation_2d):
-    ious = compute_ious(segmentation_2d[0], segmentation_2d[1])
-    expected = {1: {2: 555.46 / 1408.0}}
-    assert ious.keys() == expected.keys()
-    assert ious[1].keys() == expected[1].keys()
-    assert ious[1][2] == pytest.approx(expected[1][2], abs=0.1)
-
-    ious = compute_ious(segmentation_2d[1], segmentation_2d[1])
-    expected = {1: {1: 1.0}, 2: {2: 1.0}}
-    assert ious.keys() == expected.keys()
-    assert ious[1].keys() == expected[1].keys()
-    assert ious[1][1] == pytest.approx(expected[1][1], abs=0.1)
-    assert ious[2].keys() == expected[2].keys()
-    assert ious[2][2] == pytest.approx(expected[2][2], abs=0.1)
-
-
-def test_compute_ious_3d(segmentation_3d):
-    ious = compute_ious(segmentation_3d[0], segmentation_3d[1])
-    expected = {1: {2: 0.30}}
-    assert ious.keys() == expected.keys()
-    assert ious[1].keys() == expected[1].keys()
-    assert ious[1][2] == pytest.approx(expected[1][2], abs=0.1)
-
-    ious = compute_ious(segmentation_3d[1], segmentation_3d[1])
-    expected = {1: {1: 1.0}, 2: {2: 1.0}}
-    assert ious.keys() == expected.keys()
-    assert ious[1].keys() == expected[1].keys()
-    assert ious[1][1] == pytest.approx(expected[1][1], abs=0.1)
-    assert ious[2].keys() == expected[2].keys()
-    assert ious[2][2] == pytest.approx(expected[2][2], abs=0.1)

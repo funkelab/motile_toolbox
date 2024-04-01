@@ -4,6 +4,7 @@ import pytest
 from motile_toolbox.utils import relabel_segmentation
 from numpy.testing import assert_array_equal
 from skimage.draw import disk
+from motile_toolbox.candidate_graph.graph_attributes import NodeAttr, EdgeAttr
 
 
 @pytest.fixture
@@ -30,11 +31,11 @@ def segmentation_2d():
 def graph_2d():
     graph = nx.DiGraph()
     nodes = [
-        ("0_1", {"y": 50, "x": 50, "t": 0, "segmentation_id": 1}),
-        ("1_1", {"y": 20, "x": 80, "t": 1, "segmentation_id": 2}),
+        ("0_1", {"y": 50, "x": 50, NodeAttr.TIME.value: 0, NodeAttr.SEG_ID.value: 1}),
+        ("1_1", {"y": 20, "x": 80, NodeAttr.TIME.value: 1, NodeAttr.SEG_ID.value: 2}),
     ]
     edges = [
-        ("0_1", "1_1", {"distance": 42.43}),
+        ("0_1", "1_1", {EdgeAttr.DISTANCE.value: 42.43}),
     ]
     graph.add_nodes_from(nodes)
     graph.add_edges_from(edges)
