@@ -5,7 +5,7 @@ import networkx as nx
 import numpy as np
 
 from .conflict_sets import compute_conflict_sets
-from .iou import add_iou, add_multihypo_iou
+from .iou import add_iou
 from .utils import add_cand_edges, nodes_from_segmentation
 
 logger = logging.getLogger(__name__)
@@ -63,10 +63,7 @@ def get_candidate_graph(
         node_frame_dict=node_frame_dict,
     )
     if iou:
-        if multihypo:
-            add_multihypo_iou(cand_graph, segmentation, node_frame_dict)
-        else:
-            add_iou(cand_graph, segmentation, node_frame_dict)
+        add_iou(cand_graph, segmentation, node_frame_dict, multihypo=multihypo)
 
     logger.info(f"Candidate edges: {cand_graph.number_of_edges()}")
 

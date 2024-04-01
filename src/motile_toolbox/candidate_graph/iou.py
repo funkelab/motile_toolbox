@@ -5,13 +5,13 @@ import networkx as nx
 import numpy as np
 from tqdm import tqdm
 
-from .graph_attributes import EdgeAttr, NodeAttr
+from .graph_attributes import EdgeAttr
 from .utils import _compute_node_frame_dict, get_node_id
 
 
 def _compute_ious(
     frame1: np.ndarray, frame2: np.ndarray
-) -> dict[int, dict[int, float]]:
+) -> list[tuple[int, int, float]]:
     """Compute label IOUs between two label arrays of the same shape. Ignores background
     (label 0).
 
@@ -20,8 +20,8 @@ def _compute_ious(
         frame2 (np.ndarray): Array with integer labels
 
     Returns:
-        dict[int, dict[int, float]]: Dictionary from labels in frame 1 to labels in
-            frame 2 to iou values. Nodes that have no overlap are not included.
+        list[tuple[int, int, float]]: List of tuples of label in frame 1, label in
+            frame 2, and iou values. Labels that have no overlap are not included.
     """
     frame1 = frame1.flatten()
     frame2 = frame2.flatten()
@@ -35,15 +35,50 @@ def _compute_ious(
     frame1_label_sizes = dict(zip(frame1_values, frame1_counts))
     frame2_values, frame2_counts = np.unique(frame2, return_counts=True)
     frame2_label_sizes = dict(zip(frame2_values, frame2_counts))
-    iou_dict: dict[int, dict[int, float]] = {}
+    ious: list[tuple[int, int, float]] = []
     for index in range(values.shape[1]):
         pair = values[:, index]
         intersection = counts[index]
         id1, id2 = pair
         union = frame1_label_sizes[id1] + frame2_label_sizes[id2] - intersection
-        if id1 not in iou_dict:
-            iou_dict[id1] = {}
-        iou_dict[id1][id2] = intersection / union
+        ious.append((id1, id2, intersection / union))
+    return ious
+
+
+def _get_iou_dict(segmentation, multihypo=False) -> dict[str, dict[str, float]]:
+    """Get all ious values for the provided segmentation (all frames).
+    Will return as map from node_id -> dict[node_id] -> iou for easy
+    navigation when adding to candidate graph.
+
+    Args:
+        segmentation (np.ndarray): Segmentation that was used to create cand_graph.
+            Has shape (t, [h], [z], y, x), where h is the number of hypotheses.
+        multihypo (bool, optional): Whether or not the segmentation is multi hypothesis.
+            Defaults to False.
+
+    Returns:
+        dict[str, dict[str, float]]: A map from node id to another dictionary, which
+            contains node_ids to iou values.
+    """
+    iou_dict: dict[str, dict[str, float]] = {}
+    hypo_pairs: list[tuple[int | None, ...]]
+    if multihypo:
+        num_hypotheses = segmentation.shape[1]
+        hypo_pairs = list(product(range(num_hypotheses), repeat=2))
+    else:
+        hypo_pairs = [(None, None)]
+
+    for frame in range(len(segmentation) - 1):
+        for hypo1, hypo2 in hypo_pairs:
+            seg1 = segmentation[frame][hypo1]
+            seg2 = segmentation[frame + 1][hypo2]
+            ious = _compute_ious(seg1, seg2)
+            for label1, label2, iou in ious:
+                node_id1 = get_node_id(frame, label1, hypo1)
+                if node_id1 not in iou_dict:
+                    iou_dict[node_id1] = {}
+                node_id2 = get_node_id(frame + 1, label2, hypo2)
+                iou_dict[node_id1][node_id2] = iou
     return iou_dict
 
 
@@ -51,72 +86,30 @@ def add_iou(
     cand_graph: nx.DiGraph,
     segmentation: np.ndarray,
     node_frame_dict: dict[int, list[Any]] | None = None,
+    multihypo: bool = False,
 ) -> None:
     """Add IOU to the candidate graph.
 
     Args:
         cand_graph (nx.DiGraph): Candidate graph with nodes and edges already populated
-        segmentation (np.ndarray): segmentation that was used to create cand_graph
+        segmentation (np.ndarray): segmentation that was used to create cand_graph.
+            Has shape (t, [h], [z], y, x), where h is the number of hypotheses.
         node_frame_dict(dict[int, list[Any]] | None, optional): A mapping from
             time frames to nodes in that frame. Will be computed if not provided,
             but can be provided for efficiency (e.g. after running
             nodes_from_segmentation). Defaults to None.
+        multihypo (bool, optional): Whether the segmentation contains multiple
+            hypotheses. Defaults to False.
     """
     if node_frame_dict is None:
         node_frame_dict = _compute_node_frame_dict(cand_graph)
     frames = sorted(node_frame_dict.keys())
+    ious = _get_iou_dict(segmentation, multihypo=multihypo)
     for frame in tqdm(frames):
         if frame + 1 not in node_frame_dict:
             continue
-        ious = _compute_ious(segmentation[frame], segmentation[frame + 1])
-        next_nodes = node_frame_dict[frame + 1]
-        for node_id in node_frame_dict[frame]:
-            node_seg_id = cand_graph.nodes[node_id][NodeAttr.SEG_ID.value]
-            for next_id in next_nodes:
-                next_seg_id = cand_graph.nodes[next_id][NodeAttr.SEG_ID.value]
-                iou = ious.get(node_seg_id, {}).get(next_seg_id, 0)
-                cand_graph.edges[(node_id, next_id)][EdgeAttr.IOU.value] = iou
-
-
-def add_multihypo_iou(
-    cand_graph: nx.DiGraph,
-    segmentation: np.ndarray,
-    node_frame_dict: dict[int, list[Any]] | None = None,
-) -> None:
-    """Add IOU to the candidate graph for multi-hypothesis segmentations.
-
-    Args:
-        cand_graph (nx.DiGraph): Candidate graph with nodes and edges already populated
-        segmentation (np.ndarray): Multiple hypothesis segmentation. Dimensions
-            are (t, h, [z], y, x), where h is the number of hypotheses.
-        node_frame_dict(dict[int, list[Any]] | None, optional): A mapping from
-            time frames to nodes in that frame. Will be computed if not provided,
-            but can be provided for efficiency (e.g. after running
-            nodes_from_segmentation). Defaults to None.
-    """
-    if node_frame_dict is None:
-        node_frame_dict = _compute_node_frame_dict(cand_graph)
-    frames = sorted(node_frame_dict.keys())
-    num_hypotheses = segmentation.shape[1]
-    for frame in tqdm(frames):
-        if frame + 1 not in node_frame_dict:
-            continue
-        # construct dictionary of ious between node_ids in frame 1 and frame 2
-        ious: dict[str, dict[str, float]] = {}
-        for hypo1, hypo2 in product(range(num_hypotheses), repeat=2):
-            hypo_ious = _compute_ious(
-                segmentation[frame][hypo1], segmentation[frame + 1][hypo2]
-            )
-            for segid, intersecting_labels in hypo_ious.items():
-                node_id = get_node_id(frame, segid, hypo1)
-                if node_id not in ious:
-                    ious[node_id] = {}
-                for segid2, iou in intersecting_labels.items():
-                    next_id = get_node_id(frame + 1, segid2, hypo2)
-                    ious[node_id][next_id] = iou
         next_nodes = node_frame_dict[frame + 1]
         for node_id in node_frame_dict[frame]:
             for next_id in next_nodes:
                 iou = ious.get(node_id, {}).get(next_id, 0)
-                if (node_id, next_id) in cand_graph.edges:
-                    cand_graph.edges[(node_id, next_id)][EdgeAttr.IOU.value] = iou
+                cand_graph.edges[(node_id, next_id)][EdgeAttr.IOU.value] = iou
