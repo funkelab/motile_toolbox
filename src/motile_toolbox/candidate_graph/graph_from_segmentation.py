@@ -7,35 +7,14 @@ import numpy as np
 from skimage.measure import regionprops
 from tqdm import tqdm
 
-from .graph_attributes import EdgeAttr, NodeAttr
+from .graph_attributes import EdgeAttr, NodeAttr, add_iou
+from .utils import _get_location, _get_node_id
 
 logger = logging.getLogger(__name__)
 
 
-def _get_location(
-    node_data: dict[str, Any], position_keys: tuple[str, ...] | list[str]
-) -> list[Any]:
-    """Convenience function to get the location of a networkx node when each dimension
-    is stored in a different attribute.
-
-    Args:
-        node_data (dict[str, Any]): Dictionary of attributes of a networkx node.
-            Assumes the provided position keys are in the dictionary.
-        position_keys (tuple[str, ...] | list[str], optional): Keys to use to get
-            location information from node_data (assumes they are present in node_data).
-            Defaults to ("z", "y", "x").
-
-    Returns:
-        list: _description_
-    Raises:
-        KeyError if position keys not in node_data
-    """
-    return [node_data[k] for k in position_keys]
-
-
 def nodes_from_segmentation(
     segmentation: np.ndarray,
-    attributes: tuple[NodeAttr, ...] | list[NodeAttr] = (NodeAttr.SEG_ID,),
     position_keys: tuple[str, ...] | list[str] = ("y", "x"),
     frame_key: str = "t",
 ) -> tuple[nx.DiGraph, dict[int, list[Any]]]:
@@ -71,12 +50,11 @@ def nodes_from_segmentation(
         nodes_in_frame = []
         props = regionprops(segmentation[t])
         for regionprop in props:
-            node_id = f"{t}_{regionprop.label}"
+            node_id = _get_node_id(t, regionprop.label)
             attrs = {
                 frame_key: t,
             }
-            if NodeAttr.SEG_ID in attributes:
-                attrs[NodeAttr.SEG_ID.value] = regionprop.label
+            attrs[NodeAttr.SEG_ID.value] = regionprop.label
             centroid = regionprop.centroid  # [z,] y, x
             for label, value in zip(position_keys, centroid):
                 attrs[label] = value
@@ -112,11 +90,9 @@ def _compute_node_frame_dict(
 def add_cand_edges(
     cand_graph: nx.DiGraph,
     max_edge_distance: float,
-    attributes: tuple[EdgeAttr, ...] | list[EdgeAttr] = (EdgeAttr.DISTANCE,),
     position_keys: tuple[str, ...] | list[str] = ("y", "x"),
     frame_key: str = "t",
     node_frame_dict: None | dict[int, list[Any]] = None,
-    segmentation: None | np.ndarray = None,
 ) -> None:
     """Add candidate edges to a candidate graph by connecting all nodes in adjacent
     frames that are closer than max_edge_distance. Also adds attributes to the edges.
@@ -152,61 +128,13 @@ def add_cand_edges(
             _get_location(cand_graph.nodes[n], position_keys=position_keys)
             for n in next_nodes
         ]
-        if EdgeAttr.IOU in attributes:
-            if segmentation is None:
-                raise ValueError("Can't compute IOU without segmentation.")
-            ious = compute_ious(segmentation[frame], segmentation[frame + 1])
         for node in node_frame_dict[frame]:
             loc = _get_location(cand_graph.nodes[node], position_keys=position_keys)
             for next_id, next_loc in zip(next_nodes, next_locs):
                 dist = math.dist(next_loc, loc)
                 if dist <= max_edge_distance:
-                    attrs = {}
-                    if EdgeAttr.DISTANCE in attributes:
-                        attrs[EdgeAttr.DISTANCE.value] = dist
-                    if EdgeAttr.IOU in attributes:
-                        node_seg_id = cand_graph.nodes[node][NodeAttr.SEG_ID.value]
-                        next_seg_id = cand_graph.nodes[next_id][NodeAttr.SEG_ID.value]
-                        attrs[EdgeAttr.IOU.value] = ious.get(node_seg_id, {}).get(
-                            next_seg_id, 0
-                        )
+                    attrs = {EdgeAttr.DISTANCE.value: dist}
                     cand_graph.add_edge(node, next_id, **attrs)
-
-
-def compute_ious(frame1: np.ndarray, frame2: np.ndarray) -> dict[int, dict[int, float]]:
-    """Compute label IOUs between two label arrays of the same shape. Ignores background
-    (label 0).
-
-    Args:
-        frame1 (np.ndarray): Array with integer labels
-        frame2 (np.ndarray): Array with integer labels
-
-    Returns:
-        dict[int, dict[int, float]]: Dictionary from labels in frame 1 to labels in
-            frame 2 to iou values. Nodes that have no overlap are not included.
-    """
-    frame1 = frame1.flatten()
-    frame2 = frame2.flatten()
-    # get indices where both are not zero (ignore background)
-    # this speeds up computation significantly
-    non_zero_indices = np.logical_and(frame1, frame2)
-    flattened_stacked = np.array([frame1[non_zero_indices], frame2[non_zero_indices]])
-
-    values, counts = np.unique(flattened_stacked, axis=1, return_counts=True)
-    frame1_values, frame1_counts = np.unique(frame1, return_counts=True)
-    frame1_label_sizes = dict(zip(frame1_values, frame1_counts))
-    frame2_values, frame2_counts = np.unique(frame2, return_counts=True)
-    frame2_label_sizes = dict(zip(frame2_values, frame2_counts))
-    iou_dict: dict[int, dict[int, float]] = {}
-    for index in range(values.shape[1]):
-        pair = values[:, index]
-        intersection = counts[index]
-        id1, id2 = pair
-        union = frame1_label_sizes[id1] + frame2_label_sizes[id2] - intersection
-        if id1 not in iou_dict:
-            iou_dict[id1] = {}
-        iou_dict[id1][id2] = intersection / union
-    return iou_dict
 
 
 def graph_from_segmentation(
@@ -267,11 +195,11 @@ def graph_from_segmentation(
     add_cand_edges(
         cand_graph,
         max_edge_distance=max_edge_distance,
-        attributes=edge_attributes,
         position_keys=position_keys,
         node_frame_dict=node_frame_dict,
-        segmentation=segmentation,
     )
+    if EdgeAttr.IOU in edge_attributes:
+        add_iou(cand_graph, segmentation)
 
     logger.info(f"Candidate edges: {cand_graph.number_of_edges()}")
     return cand_graph

@@ -6,8 +6,9 @@ class NodeAttr(Enum):
     Note: Motile can flexibly support any custom attributes. The toolbox provides
     implementations of commonly used ones, listed here.
     """
-
-    SEG_ID = "segmentation_id"
+    POS = "position"
+    SEG_ID = "segmentation_id"  # TODO: Seg?
+    SEG_HYPOTHESIS = "seg_hypothesis"
 
 
 class EdgeAttr(Enum):
@@ -18,3 +19,9 @@ class EdgeAttr(Enum):
 
     DISTANCE = "distance"
     IOU = "iou"
+
+
+def add_iou(cand_graph, segmentation) -> None:
+    # TODO: implement
+    pass
+
