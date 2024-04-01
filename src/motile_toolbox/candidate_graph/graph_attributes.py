@@ -24,4 +24,3 @@ class EdgeAttr(Enum):
 def add_iou(cand_graph, segmentation) -> None:
     # TODO: implement
     pass
-

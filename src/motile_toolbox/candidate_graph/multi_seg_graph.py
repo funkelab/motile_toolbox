@@ -1,18 +1,19 @@
-import numpy as np
-import networkx as nx
 from typing import Any
 
+import networkx as nx
+import numpy as np
+
 from .graph_attributes import EdgeAttr, NodeAttr, add_iou
-from .graph_from_segmentation import nodes_from_segmentation, add_cand_edges
+from .graph_from_segmentation import add_cand_edges, nodes_from_segmentation
 
 
 def compute_multi_seg_graph(segmentations: list[np.ndarray]) -> tuple[nx.DiGraph, list[set]]:
-    """Create a candidate graph from multi hypothesis segmentations. This is not 
-    tailored for agglomeration approaches with hierarchical merge graphs, it simply 
+    """Create a candidate graph from multi hypothesis segmentations. This is not
+    tailored for agglomeration approaches with hierarchical merge graphs, it simply
     creates a conflict set for any nodes that overlap in the same time frame.
 
     Args:
-        segmentations (list[np.ndarray]): 
+        segmentations (list[np.ndarray]):
 
     Returns:
         nx.DiGraph: _description_
@@ -34,8 +35,8 @@ def compute_multi_seg_graph(segmentations: list[np.ndarray]) -> tuple[nx.DiGraph
         add_iou(cand_graph, segmentation)
 
     return cand_graph
-        
-    
+
+
 
 
 
@@ -62,6 +63,6 @@ def nodes_from_multi_segmentation(
 
 
 def compute_conflict_sets(segmenations: np.ndarray, time: int) -> list[set]:
-    """ Segmentations in one frame only. Return list of sets of node ids that conflict."""
+    """Segmentations in one frame only. Return list of sets of node ids that conflict."""
     # This will look a lot like the IOU code
     pass

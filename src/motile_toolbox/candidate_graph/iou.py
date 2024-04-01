@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def compute_ious(frame1: np.ndarray, frame2: np.ndarray) -> dict[int, dict[int, float]]:
     """Compute label IOUs between two label arrays of the same shape. Ignores background
     (label 0).
