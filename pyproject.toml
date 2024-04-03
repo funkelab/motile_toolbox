@@ -35,6 +35,7 @@ dev = [
   'pdoc',
   'pre-commit',
   'types-tqdm',
+  'pytest-unordered'
 ]
 
 [project.urls]

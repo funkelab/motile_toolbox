@@ -7,7 +7,10 @@ class NodeAttr(Enum):
     implementations of commonly used ones, listed here.
     """
 
-    SEG_ID = "segmentation_id"
+    POS = "pos"
+    TIME = "time"
+    SEG_ID = "seg_id"
+    SEG_HYPO = "seg_hypo"
 
 
 class EdgeAttr(Enum):
