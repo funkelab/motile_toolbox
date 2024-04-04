@@ -106,10 +106,11 @@ def add_iou(
     frames = sorted(node_frame_dict.keys())
     ious = _get_iou_dict(segmentation, multihypo=multihypo)
     for frame in tqdm(frames):
-        if frame + 1 not in node_frame_dict:
+        if frame + 1 not in node_frame_dict.keys():
             continue
         next_nodes = node_frame_dict[frame + 1]
         for node_id in node_frame_dict[frame]:
             for next_id in next_nodes:
                 iou = ious.get(node_id, {}).get(next_id, 0)
-                cand_graph.edges[(node_id, next_id)][EdgeAttr.IOU.value] = iou
+                if (node_id, next_id) in cand_graph.edges:
+                    cand_graph.edges[(node_id, next_id)][EdgeAttr.IOU.value] = iou
