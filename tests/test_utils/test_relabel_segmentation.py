@@ -5,7 +5,6 @@ from skimage.draw import disk
 
 
 def test_relabel_segmentation(segmentation_2d, graph_2d):
-    segmentation_2d = np.expand_dims(segmentation_2d, 1)
     frame_shape = (100, 100)
     expected = np.zeros(segmentation_2d.shape, dtype="int32")
     # make frame with one cell in center with label 1

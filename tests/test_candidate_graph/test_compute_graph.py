@@ -60,7 +60,6 @@ def test_graph_from_multi_segmentation_2d(
         segmentation=multi_hypothesis_segmentation_2d,
         max_edge_distance=100,
         iou=True,
-        multihypo=True,
     )
     assert Counter(list(cand_graph.nodes)) == Counter(
         list(multi_hypothesis_graph_2d.nodes)
@@ -87,7 +86,6 @@ def test_graph_from_multi_segmentation_2d(
     cand_graph, _ = get_candidate_graph(
         segmentation=multi_hypothesis_segmentation_2d,
         max_edge_distance=14,
-        multihypo=True,
     )
     assert Counter(list(cand_graph.nodes)) == Counter(
         list(multi_hypothesis_graph_2d.nodes)
