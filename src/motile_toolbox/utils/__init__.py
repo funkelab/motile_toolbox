@@ -1,1 +1,1 @@
-from .saving_utils import relabel_segmentation
+from .relabel_segmentation import relabel_segmentation

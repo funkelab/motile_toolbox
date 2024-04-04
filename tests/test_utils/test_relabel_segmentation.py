@@ -5,15 +5,16 @@ from skimage.draw import disk
 
 
 def test_relabel_segmentation(segmentation_2d, graph_2d):
+    segmentation_2d = np.expand_dims(segmentation_2d, 1)
     frame_shape = (100, 100)
     expected = np.zeros(segmentation_2d.shape, dtype="int32")
     # make frame with one cell in center with label 1
     rr, cc = disk(center=(50, 50), radius=20, shape=(100, 100))
-    expected[0][rr, cc] = 1
+    expected[0, 0][rr, cc] = 1
 
     # make frame with cell centered at (20, 80) with label 1
     rr, cc = disk(center=(20, 80), radius=10, shape=frame_shape)
-    expected[1][rr, cc] = 1
+    expected[1, 0][rr, cc] = 1
 
     graph_2d.remove_node("1_2")
     relabeled_seg = relabel_segmentation(graph_2d, segmentation_2d)
