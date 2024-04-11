@@ -17,7 +17,7 @@ from motile_toolbox.candidate_graph.utils import _compute_node_frame_dict
 def test_nodes_from_segmentation_empty():
     # test with empty segmentation
     empty_graph, node_frame_dict = nodes_from_segmentation(
-        np.zeros((3, 10, 10), dtype="int32")
+        np.zeros((3, 1, 10, 10), dtype="int32")
     )
     assert Counter(empty_graph.nodes) == Counter([])
     assert node_frame_dict == {}
@@ -37,19 +37,23 @@ def test_nodes_from_segmentation_2d(segmentation_2d):
     assert Counter(node_frame_dict[1]) == Counter(["1_1", "1_2"])
 
 
-def test_nodes_from_segmentation_2d_hypo(segmentation_2d):
+def test_nodes_from_segmentation_2d_hypo(
+    multi_hypothesis_segmentation_2d, multi_hypothesis_graph_2d
+):
     # test with 2D segmentation
     node_graph, node_frame_dict = nodes_from_segmentation(
-        segmentation=segmentation_2d, hypo_id=0
+        segmentation=multi_hypothesis_segmentation_2d
     )
-    assert Counter(list(node_graph.nodes)) == Counter(["0_0_1", "1_0_1", "1_0_2"])
+    assert Counter(list(node_graph.nodes)) == Counter(
+        list(multi_hypothesis_graph_2d.nodes)
+    )
     assert node_graph.nodes["1_0_1"][NodeAttr.SEG_ID.value] == 1
     assert node_graph.nodes["1_0_1"][NodeAttr.SEG_HYPO.value] == 0
     assert node_graph.nodes["1_0_1"][NodeAttr.TIME.value] == 1
     assert node_graph.nodes["1_0_1"][NodeAttr.POS.value] == (20, 80)
 
-    assert node_frame_dict[0] == ["0_0_1"]
-    assert Counter(node_frame_dict[1]) == Counter(["1_0_1", "1_0_2"])
+    assert Counter(node_frame_dict[0]) == Counter(["0_0_1", "0_1_1"])
+    assert Counter(node_frame_dict[1]) == Counter(["1_0_1", "1_0_2", "1_1_1", "1_1_2"])
 
 
 def test_nodes_from_segmentation_3d(segmentation_3d):

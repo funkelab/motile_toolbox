@@ -45,16 +45,14 @@ def _compute_ious(
     return ious
 
 
-def _get_iou_dict(segmentation, multihypo=False) -> dict[str, dict[str, float]]:
+def _get_iou_dict(segmentation) -> dict[str, dict[str, float]]:
     """Get all ious values for the provided segmentation (all frames).
     Will return as map from node_id -> dict[node_id] -> iou for easy
     navigation when adding to candidate graph.
 
     Args:
         segmentation (np.ndarray): Segmentation that was used to create cand_graph.
-            Has shape (t, [h], [z], y, x), where h is the number of hypotheses.
-        multihypo (bool, optional): Whether or not the segmentation is multi hypothesis.
-            Defaults to False.
+            Has shape (t, h, [z], y, x), where h is the number of hypotheses.
 
     Returns:
         dict[str, dict[str, float]]: A map from node id to another dictionary, which
@@ -62,8 +60,8 @@ def _get_iou_dict(segmentation, multihypo=False) -> dict[str, dict[str, float]]:
     """
     iou_dict: dict[str, dict[str, float]] = {}
     hypo_pairs: list[tuple[int | None, ...]]
-    if multihypo:
-        num_hypotheses = segmentation.shape[1]
+    num_hypotheses = segmentation.shape[1]
+    if num_hypotheses > 1:
         hypo_pairs = list(product(range(num_hypotheses), repeat=2))
     else:
         hypo_pairs = [(None, None)]
@@ -86,25 +84,22 @@ def add_iou(
     cand_graph: nx.DiGraph,
     segmentation: np.ndarray,
     node_frame_dict: dict[int, list[Any]] | None = None,
-    multihypo: bool = False,
 ) -> None:
     """Add IOU to the candidate graph.
 
     Args:
         cand_graph (nx.DiGraph): Candidate graph with nodes and edges already populated
         segmentation (np.ndarray): segmentation that was used to create cand_graph.
-            Has shape (t, [h], [z], y, x), where h is the number of hypotheses.
+            Has shape (t, h, [z], y, x), where h is the number of hypotheses.
         node_frame_dict(dict[int, list[Any]] | None, optional): A mapping from
             time frames to nodes in that frame. Will be computed if not provided,
             but can be provided for efficiency (e.g. after running
             nodes_from_segmentation). Defaults to None.
-        multihypo (bool, optional): Whether the segmentation contains multiple
-            hypotheses. Defaults to False.
     """
     if node_frame_dict is None:
         node_frame_dict = _compute_node_frame_dict(cand_graph)
     frames = sorted(node_frame_dict.keys())
-    ious = _get_iou_dict(segmentation, multihypo=multihypo)
+    ious = _get_iou_dict(segmentation)
     for frame in tqdm(frames):
         if frame + 1 not in node_frame_dict.keys():
             continue

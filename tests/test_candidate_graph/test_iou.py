@@ -46,7 +46,7 @@ def test_multi_hypo_iou_2d(multi_hypothesis_segmentation_2d, multi_hypothesis_gr
     expected = multi_hypothesis_graph_2d
     input_graph = multi_hypothesis_graph_2d.copy()
     nx.set_edge_attributes(input_graph, -1, name=EdgeAttr.IOU.value)
-    add_iou(input_graph, multi_hypothesis_segmentation_2d, multihypo=True)
+    add_iou(input_graph, multi_hypothesis_segmentation_2d)
     for s, t, attrs in expected.edges(data=True):
         print(s, t)
         assert (
