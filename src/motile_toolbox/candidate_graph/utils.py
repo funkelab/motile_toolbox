@@ -74,7 +74,6 @@ def nodes_from_segmentation(
                 bbox = regionprop.bbox
                 attrs[NodeAttr.POS.value] = centroid
                 attrs[NodeAttr.BBOX.value] = bbox
-                attrs[NodeAttr.FLOW.value] = (0,) * len(centroid)
                 cand_graph.add_node(node_id, **attrs)
                 nodes_in_frame.append(node_id)
             if nodes_in_frame:
