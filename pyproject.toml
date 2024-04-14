@@ -17,7 +17,7 @@ authors = [
 ]
 dynamic = ["version"]
 dependencies = [
-  "motile",
+  "motile @git+https://github.com/funkelab/motile.git",
   "networkx",
   "numpy",
   "matplotlib",
