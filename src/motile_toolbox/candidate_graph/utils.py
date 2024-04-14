@@ -71,7 +71,10 @@ def nodes_from_segmentation(
                 if hypo_id is not None:
                     attrs[NodeAttr.SEG_HYPO.value] = hypo_id
                 centroid = regionprop.centroid  # [z,] y, x
+                bbox = regionprop.bbox
                 attrs[NodeAttr.POS.value] = centroid
+                attrs[NodeAttr.BBOX.value] = bbox
+                attrs[NodeAttr.FLOW.value] = (0,) * len(centroid)
                 cand_graph.add_node(node_id, **attrs)
                 nodes_in_frame.append(node_id)
             if nodes_in_frame:
