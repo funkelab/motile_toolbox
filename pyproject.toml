@@ -6,7 +6,7 @@ requires = ["setuptools", "wheel"]
 name = "motile_toolbox"
 description = "A toolbox for tracking with (motile)[https://github.com/funkelab/motile]."
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.10"
 classifiers = [
   "Programming Language :: Python :: 3",
 ]
