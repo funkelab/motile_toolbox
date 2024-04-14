@@ -8,9 +8,10 @@ from motile_toolbox.candidate_graph.graph_attributes import EdgeAttr, NodeAttr
 
 
 def compute_pcc_flow(candidate_graph: nx.DiGraph, images: np.ndarray):
-    """This calculates the flow for the image cropped around an object
-    at `t` and the same region of interest at `t+1`, and updates the
-    `NodeAttr.FLOW`.
+    """This calculates the flow using phase cross correlation
+    for the image cropped around an object
+    at `t` and the same region of interest at `t+1`,
+    and updates the `NodeAttr.FLOW`.
 
     Args:
         candidate_graph (nx.DiGraph): Existing candidate graph with nodes.
