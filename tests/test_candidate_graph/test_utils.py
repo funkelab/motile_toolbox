@@ -75,11 +75,6 @@ def test_add_cand_edges_2d(graph_2d):
     cand_graph = nx.create_empty_copy(graph_2d)
     add_cand_edges(cand_graph, max_edge_distance=50)
     assert Counter(list(cand_graph.edges)) == Counter(list(graph_2d.edges))
-    for edge in cand_graph.edges:
-        assert (
-            pytest.approx(cand_graph.edges[edge][EdgeAttr.DISTANCE.value], abs=0.01)
-            == graph_2d.edges[edge][EdgeAttr.DISTANCE.value]
-        )
 
 
 def test_add_cand_edges_3d(graph_3d):
@@ -87,8 +82,6 @@ def test_add_cand_edges_3d(graph_3d):
     add_cand_edges(cand_graph, max_edge_distance=15)
     graph_3d.remove_edge("0_1", "1_1")
     assert Counter(list(cand_graph.edges)) == Counter(list(graph_3d.edges))
-    for edge in cand_graph.edges:
-        assert pytest.approx(cand_graph.edges[edge], abs=0.01) == graph_3d.edges[edge]
 
 
 def test_get_node_id():

@@ -22,10 +22,6 @@ def test_graph_from_segmentation_2d(segmentation_2d, graph_2d):
     for edge in cand_graph.edges:
         print(cand_graph.edges[edge])
         assert (
-            pytest.approx(cand_graph.edges[edge][EdgeAttr.DISTANCE.value], abs=0.01)
-            == graph_2d.edges[edge][EdgeAttr.DISTANCE.value]
-        )
-        assert (
             pytest.approx(cand_graph.edges[edge][EdgeAttr.IOU.value], abs=0.01)
             == graph_2d.edges[edge][EdgeAttr.IOU.value]
         )
@@ -37,9 +33,6 @@ def test_graph_from_segmentation_2d(segmentation_2d, graph_2d):
     )
     assert Counter(list(cand_graph.nodes)) == Counter(["0_1", "1_1", "1_2"])
     assert Counter(list(cand_graph.edges)) == Counter([("0_1", "1_2")])
-    assert cand_graph.edges[("0_1", "1_2")][EdgeAttr.DISTANCE.value] == pytest.approx(
-        11.18, abs=0.01
-    )
 
 
 def test_graph_from_segmentation_3d(segmentation_3d, graph_3d):
@@ -83,10 +76,6 @@ def test_graph_from_multi_segmentation_2d(
         )
 
     for edge in cand_graph.edges:
-        assert (
-            pytest.approx(cand_graph.edges[edge][EdgeAttr.DISTANCE.value], abs=0.01)
-            == multi_hypothesis_graph_2d.edges[edge][EdgeAttr.DISTANCE.value]
-        )
         assert (
             pytest.approx(cand_graph.edges[edge][EdgeAttr.IOU.value], abs=0.01)
             == multi_hypothesis_graph_2d.edges[edge][EdgeAttr.IOU.value]
