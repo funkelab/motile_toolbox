@@ -1,10 +1,11 @@
 import logging
 import math
-from typing import Any
+from typing import Any, Iterable
 
 import networkx as nx
 import numpy as np
 from skimage.measure import regionprops
+from scipy.spatial import KDTree
 from tqdm import tqdm
 
 from .graph_attributes import EdgeAttr, NodeAttr
@@ -99,6 +100,11 @@ def _compute_node_frame_dict(cand_graph: nx.DiGraph) -> dict[int, list[Any]]:
     return node_frame_dict
 
 
+def create_kdtree(cand_graph: nx.DiGraph, node_ids: Iterable[Any]) -> KDTree:
+    positions = [cand_graph.nodes[node][NodeAttr.POS.value] for node in node_ids]
+    return KDTree(positions)
+
+
 def add_cand_edges(
     cand_graph: nx.DiGraph,
     max_edge_distance: float,
@@ -122,15 +128,20 @@ def add_cand_edges(
         node_frame_dict = _compute_node_frame_dict(cand_graph)
 
     frames = sorted(node_frame_dict.keys())
+    prev_node_ids = node_frame_dict[frames[0]]
+    prev_kdtree = create_kdtree(cand_graph, prev_node_ids)
     for frame in tqdm(frames):
         if frame + 1 not in node_frame_dict:
             continue
-        next_nodes = node_frame_dict[frame + 1]
-        next_locs = [cand_graph.nodes[n][NodeAttr.POS.value] for n in next_nodes]
-        for node in node_frame_dict[frame]:
-            loc = cand_graph.nodes[node][NodeAttr.POS.value]
-            for next_id, next_loc in zip(next_nodes, next_locs):
-                dist = math.dist(next_loc, loc)
-                if dist <= max_edge_distance:
-                    attrs = {EdgeAttr.DISTANCE.value: dist}
-                    cand_graph.add_edge(node, next_id, **attrs)
+        next_node_ids = node_frame_dict[frame + 1]
+        next_kdtree = create_kdtree(cand_graph, next_node_ids)
+
+        matched_indices = prev_kdtree.query_ball_tree(next_kdtree, max_edge_distance)
+
+        for prev_node_id, next_node_indices in zip(prev_node_ids, matched_indices):
+            for next_node_index in next_node_indices:
+                next_node_id = next_node_ids[next_node_index]
+                cand_graph.add_edge(prev_node_id, next_node_id)
+
+        prev_node_ids = next_node_ids
+        prev_kdtree = next_kdtree

@@ -19,5 +19,4 @@ class EdgeAttr(Enum):
     implementations of commonly used ones, listed here.
     """
 
-    DISTANCE = "distance"
     IOU = "iou"
