@@ -1,6 +1,6 @@
 [build-system]
 build-backend = "setuptools.build_meta"
-requires = ["setuptools", "wheel"]
+requires = ["setuptools>=64", "wheel", "setuptools_scm>=8"]
 
 [project]
 name = "motile_toolbox"
@@ -41,6 +41,8 @@ dev = [
 [project.urls]
 homepage = "https://github.com/funkelab/motile_toolbox"
 repository = "https://github.com/funkelab/motile_toolbox"
+
+[tool.setuptools_scm]
 
 [tool.coverage.run]
 omit = ["src/motile_toolbox/visualization/*"]
