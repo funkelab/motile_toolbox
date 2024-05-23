@@ -13,5 +13,5 @@ API documentation available at: https://funkelab.github.io/motile_toolbox.
 Motile Toolbox depends on [motile](https://github.com/funkelab/motile), which in turn depends on gurobi and ilpy. These dependencies must be installed with conda before installing motile toolbox with pip.
 ```
 conda install -c conda-forge -c funkelab -c gurobi ilpy
-pip install .
+pip install motile-toolbox
 ```
