@@ -1,6 +1,7 @@
 """
 .. include:: ../../README.md
 """
+
 from importlib.metadata import PackageNotFoundError, version
 
 try:
