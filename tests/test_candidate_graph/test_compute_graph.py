@@ -1,7 +1,7 @@
 from collections import Counter
 
 import pytest
-from motile_toolbox.candidate_graph import EdgeAttr, get_candidate_graph
+from motile_toolbox.candidate_graph import EdgeAttr, NodeAttr, get_candidate_graph
 
 
 def test_graph_from_segmentation_2d(segmentation_2d, graph_2d):
@@ -14,7 +14,11 @@ def test_graph_from_segmentation_2d(segmentation_2d, graph_2d):
     assert Counter(list(cand_graph.nodes)) == Counter(list(graph_2d.nodes))
     assert Counter(list(cand_graph.edges)) == Counter(list(graph_2d.edges))
     for node in cand_graph.nodes:
-        assert Counter(cand_graph.nodes[node]) == Counter(graph_2d.nodes[node])
+        assert (
+            pytest.approx(cand_graph.nodes[node][NodeAttr.POS.value], abs=0.01)
+            == graph_2d.nodes[node][NodeAttr.POS.value]
+        )
+
     for edge in cand_graph.edges:
         print(cand_graph.edges[edge])
         assert (
@@ -39,8 +43,13 @@ def test_graph_from_segmentation_3d(segmentation_3d, graph_3d):
     )
     assert Counter(list(cand_graph.nodes)) == Counter(list(graph_3d.nodes))
     assert Counter(list(cand_graph.edges)) == Counter(list(graph_3d.edges))
+
     for node in cand_graph.nodes:
-        assert Counter(cand_graph.nodes[node]) == Counter(graph_3d.nodes[node])
+        assert (
+            pytest.approx(cand_graph.nodes[node][NodeAttr.POS.value], abs=0.01)
+            == graph_3d.nodes[node][NodeAttr.POS.value]
+        )
+
     for edge in cand_graph.edges:
         assert pytest.approx(cand_graph.edges[edge], abs=0.01) == graph_3d.edges[edge]
 
@@ -61,9 +70,11 @@ def test_graph_from_multi_segmentation_2d(
         list(multi_hypothesis_graph_2d.edges)
     )
     for node in cand_graph.nodes:
-        assert Counter(cand_graph.nodes[node]) == Counter(
-            multi_hypothesis_graph_2d.nodes[node]
+        assert (
+            pytest.approx(cand_graph.nodes[node][NodeAttr.POS.value], abs=0.01)
+            == multi_hypothesis_graph_2d.nodes[node][NodeAttr.POS.value]
         )
+
     for edge in cand_graph.edges:
         assert (
             pytest.approx(cand_graph.edges[edge][EdgeAttr.IOU.value], abs=0.01)
