@@ -1,14 +1,13 @@
 import logging
-import math
 from typing import Any, Iterable
 
 import networkx as nx
 import numpy as np
-from skimage.measure import regionprops
 from scipy.spatial import KDTree
+from skimage.measure import regionprops
 from tqdm import tqdm
 
-from .graph_attributes import EdgeAttr, NodeAttr
+from .graph_attributes import NodeAttr
 
 logger = logging.getLogger(__name__)
 
@@ -79,6 +78,42 @@ def nodes_from_segmentation(
                 if t not in node_frame_dict:
                     node_frame_dict[t] = []
                 node_frame_dict[t].extend(nodes_in_frame)
+    return cand_graph, node_frame_dict
+
+
+def nodes_from_points_list(
+    points_list: np.ndarray,
+) -> tuple[nx.DiGraph, dict[int, list[Any]]]:
+    """Extract candidate nodes from a list of points. Uses the index of the
+    point in the list as its unique id.
+    Returns a networkx graph with only nodes, and also a dictionary from frames to
+    node_ids for efficient edge adding.
+
+    Args:
+        points_list (np.ndarray): An NxD numpy array with N points and D
+            (3 or 4) dimensions. Dimensions should be in order (t, [z], y, x).
+
+    Returns:
+        tuple[nx.DiGraph, dict[int, list[Any]]]: A candidate graph with only nodes,
+            and a mapping from time frames to node ids.
+    """
+    cand_graph = nx.DiGraph()
+    # also construct a dictionary from time frame to node_id for efficiency
+    node_frame_dict: dict[int, list[Any]] = {}
+    print("Extracting nodes from points list")
+    for i, point in enumerate(points_list):
+        # assume t, [z], y, x
+        t = point[0]
+        pos = point[1:]
+        node_id = i
+        attrs = {
+            NodeAttr.TIME.value: t,
+            NodeAttr.POS.value: pos,
+        }
+        cand_graph.add_node(node_id, **attrs)
+        if t not in node_frame_dict:
+            node_frame_dict[t] = []
+        node_frame_dict[t].append(node_id)
     return cand_graph, node_frame_dict
 
 
