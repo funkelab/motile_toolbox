@@ -2,15 +2,16 @@ from collections import Counter
 
 import networkx as nx
 import numpy as np
-import pytest
 from motile_toolbox.candidate_graph import (
-    EdgeAttr,
     NodeAttr,
     add_cand_edges,
     get_node_id,
     nodes_from_segmentation,
 )
-from motile_toolbox.candidate_graph.utils import _compute_node_frame_dict
+from motile_toolbox.candidate_graph.utils import (
+    _compute_node_frame_dict,
+    nodes_from_points_list,
+)
 
 
 # nodes_from_segmentation
@@ -98,3 +99,19 @@ def test_compute_node_frame_dict(graph_2d):
         1: ["1_1", "1_2"],
     }
     assert node_frame_dict == expected
+
+
+def test_nodes_from_points_list_2d():
+    points_list = np.array(
+        [
+            [0, 1, 2, 3],
+            [2, 3, 4, 5],
+            [1, 2, 3, 4],
+        ]
+    )
+    cand_graph, node_frame_dict = nodes_from_points_list(points_list)
+    assert Counter(list(cand_graph.nodes)) == Counter([0, 1, 2])
+    assert cand_graph.nodes[0][NodeAttr.TIME.value] == 0
+    assert (cand_graph.nodes[0][NodeAttr.POS.value] == np.array([1, 2, 3])).all()
+    assert cand_graph.nodes[1][NodeAttr.TIME.value] == 2
+    assert (cand_graph.nodes[1][NodeAttr.POS.value] == np.array([3, 4, 5])).all()

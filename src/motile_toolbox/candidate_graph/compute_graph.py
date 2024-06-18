@@ -6,7 +6,7 @@ import numpy as np
 
 from .conflict_sets import compute_conflict_sets
 from .iou import add_iou
-from .utils import add_cand_edges, nodes_from_segmentation
+from .utils import add_cand_edges, nodes_from_points_list, nodes_from_segmentation
 
 logger = logging.getLogger(__name__)
 
@@ -58,3 +58,32 @@ def get_candidate_graph(
             conflicts.extend(compute_conflict_sets(segs, time))
 
     return cand_graph, conflicts
+
+
+def get_candidate_graph_from_points_list(
+    points_list: np.ndarray,
+    max_edge_distance: float,
+) -> nx.DiGraph:
+    """Construct a candidate graph from a points list.
+
+    Args:
+        points_list (np.ndarray): An NxD numpy array with N points and D
+            (3 or 4) dimensions. Dimensions should be in order  (t, [z], y, x).
+        max_edge_distance (float): Maximum distance that objects can travel between
+            frames. All nodes with centroids within this distance in adjacent frames
+            will by connected with a candidate edge.
+
+    Returns:
+        nx.DiGraph: A candidate graph that can be passed to the motile solver.
+        Multiple hypotheses not supported for points input.
+    """
+    # add nodes
+    cand_graph, node_frame_dict = nodes_from_points_list(points_list)
+    logger.info(f"Candidate nodes: {cand_graph.number_of_nodes()}")
+    # add edges
+    add_cand_edges(
+        cand_graph,
+        max_edge_distance=max_edge_distance,
+        node_frame_dict=node_frame_dict,
+    )
+    return cand_graph
