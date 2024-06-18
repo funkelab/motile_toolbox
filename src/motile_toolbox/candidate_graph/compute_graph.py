@@ -74,8 +74,8 @@ def get_candidate_graph_from_points_list(
             will by connected with a candidate edge.
 
     Returns:
-        tuple[nx.DiGraph, list[set[Any]] | None]: A candidate graph that can be passed
-        to the motile solver, and a list of conflicting node ids.
+        nx.DiGraph: A candidate graph that can be passed to the motile solver.
+        Multiple hypotheses not supported for points input.
     """
     # add nodes
     cand_graph, node_frame_dict = nodes_from_points_list(points_list)
