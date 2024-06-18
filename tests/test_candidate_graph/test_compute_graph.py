@@ -1,7 +1,11 @@
 from collections import Counter
 
+import numpy as np
 import pytest
 from motile_toolbox.candidate_graph import EdgeAttr, get_candidate_graph
+from motile_toolbox.candidate_graph.compute_graph import (
+    get_candidate_graph_from_points_list,
+)
 
 
 def test_graph_from_segmentation_2d(segmentation_2d, graph_2d):
@@ -82,3 +86,18 @@ def test_graph_from_multi_segmentation_2d(
     assert Counter(list(cand_graph.edges)) == Counter(
         [("0_0_1", "1_0_2"), ("0_0_1", "1_1_2"), ("0_1_1", "1_1_2")]
     )
+
+
+def test_graph_from_points_list():
+    points_list = np.array(
+        [
+            [0, 1, 1, 1],
+            [2, 3, 3, 3],
+            [1, 2, 2, 2],
+            [2, 6, 6, 6],
+            [2, 1, 1, 1],
+        ]
+    )
+    cand_graph = get_candidate_graph_from_points_list(points_list, max_edge_distance=3)
+    assert cand_graph.number_of_edges() == 3
+    assert len(cand_graph.in_edges(3)) == 0

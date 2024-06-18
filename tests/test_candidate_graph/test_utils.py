@@ -101,7 +101,7 @@ def test_compute_node_frame_dict(graph_2d):
     assert node_frame_dict == expected
 
 
-def test_nodes_from_points_list_2d(graph_2d):
+def test_nodes_from_points_list_2d():
     points_list = np.array(
         [
             [0, 1, 2, 3],
