@@ -104,7 +104,7 @@ def nodes_from_points_list(
     for i, point in enumerate(points_list):
         # assume t, [z], y, x
         t = point[0]
-        pos = point[1:]
+        pos = list(point[1:])
         node_id = i
         attrs = {
             NodeAttr.TIME.value: t,
