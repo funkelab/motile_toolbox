@@ -30,13 +30,13 @@ dependencies = [
 dev = [
   'pytest',
   'pytest-cov',
-  'black',
   'mypy',
   'pdoc',
   'pre-commit',
   'types-tqdm',
   'pytest-unordered',
   'plotly',
+  'ruff',
 ]
 
 [project.urls]
