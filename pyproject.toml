@@ -35,6 +35,7 @@ dev = [
   'pre-commit',
   'types-tqdm',
   'pytest-unordered',
+  'plotly',
   'ruff',
 ]
 
