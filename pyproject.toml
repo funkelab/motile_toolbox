@@ -24,6 +24,7 @@ dependencies = [
   "scikit-image",
   "tqdm",
   "zarr",
+  "plotly",
 ]
 
 [project.optional-dependencies]
@@ -35,7 +36,6 @@ dev = [
   'pre-commit',
   'types-tqdm',
   'pytest-unordered',
-  'plotly',
   'ruff',
 ]
 
