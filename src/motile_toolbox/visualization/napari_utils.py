@@ -28,7 +28,7 @@ def assign_tracklet_ids(graph: nx.DiGraph) -> nx.DiGraph:
             graph_copy.remove_edge(parent, daughter)
             intertrack_edges.append((parent, daughter))
 
-    track_id = 0
+    track_id = 1
     for tracklet in nx.weakly_connected_components(graph_copy):
         nx.set_node_attributes(
             graph, {node: {"tracklet_id": track_id} for node in tracklet}
