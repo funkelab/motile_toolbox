@@ -37,6 +37,13 @@ def assign_tracklet_ids(graph: nx.DiGraph) -> nx.DiGraph:
     return graph, intertrack_edges
 
 
+def _get_location(graph, node, location_key):
+    if isinstance(location_key, list) or isinstance(location_key, tuple):
+        return [graph.nodes[node][dim] for dim in location_key]
+    else:
+        return graph.nodes[node][location_key]
+
+
 def to_napari_tracks_layer(
     graph, frame_key=NodeAttr.TIME.value, location_key=NodeAttr.POS.value, properties=()
 ):
@@ -67,16 +74,14 @@ def to_napari_tracks_layer(
             case of track splitting, or more than one (the track has multiple
             parents, but only one child) in the case of track merging.
     """
-    for _, loc in graph.nodes(data=location_key):
-        ndim = len(loc)
-        break
+    ndim = len(_get_location(graph, next(iter(graph.nodes)), location_key))
     napari_data = np.zeros((graph.number_of_nodes(), ndim + 2))
     napari_properties = {prop: np.zeros(graph.number_of_nodes()) for prop in properties}
     napari_edges = {}
     graph, intertrack_edges = assign_tracklet_ids(graph)
     for index, node in enumerate(graph.nodes(data=True)):
         node_id, data = node
-        location = data[location_key]
+        location = _get_location(graph, node_id, location_key)
         napari_data[index] = [data["tracklet_id"], data[frame_key], *location]
         for prop in properties:
             if prop in data:
