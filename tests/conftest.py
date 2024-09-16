@@ -71,6 +71,7 @@ def graph_2d():
                 NodeAttr.POS.value: (50, 50),
                 NodeAttr.TIME.value: 0,
                 NodeAttr.SEG_ID.value: 1,
+                NodeAttr.AREA.value: 1245,
             },
         ),
         (
@@ -79,6 +80,7 @@ def graph_2d():
                 NodeAttr.POS.value: (20, 80),
                 NodeAttr.TIME.value: 1,
                 NodeAttr.SEG_ID.value: 1,
+                NodeAttr.AREA.value: 305,
             },
         ),
         (
@@ -87,6 +89,7 @@ def graph_2d():
                 NodeAttr.POS.value: (60, 45),
                 NodeAttr.TIME.value: 1,
                 NodeAttr.SEG_ID.value: 2,
+                NodeAttr.AREA.value: 697,
             },
         ),
     ]
@@ -110,6 +113,7 @@ def multi_hypothesis_graph_2d():
                 NodeAttr.TIME.value: 0,
                 NodeAttr.SEG_HYPO.value: 0,
                 NodeAttr.SEG_ID.value: 1,
+                NodeAttr.AREA.value: 1245,
             },
         ),
         (
@@ -119,6 +123,7 @@ def multi_hypothesis_graph_2d():
                 NodeAttr.TIME.value: 0,
                 NodeAttr.SEG_HYPO.value: 1,
                 NodeAttr.SEG_ID.value: 1,
+                NodeAttr.AREA.value: 697,
             },
         ),
         (
@@ -128,6 +133,7 @@ def multi_hypothesis_graph_2d():
                 NodeAttr.TIME.value: 1,
                 NodeAttr.SEG_HYPO.value: 0,
                 NodeAttr.SEG_ID.value: 1,
+                NodeAttr.AREA.value: 305,
             },
         ),
         (
@@ -137,6 +143,7 @@ def multi_hypothesis_graph_2d():
                 NodeAttr.TIME.value: 1,
                 NodeAttr.SEG_HYPO.value: 1,
                 NodeAttr.SEG_ID.value: 1,
+                NodeAttr.AREA.value: 697,
             },
         ),
         (
@@ -146,6 +153,7 @@ def multi_hypothesis_graph_2d():
                 NodeAttr.TIME.value: 1,
                 NodeAttr.SEG_HYPO.value: 0,
                 NodeAttr.SEG_ID.value: 2,
+                NodeAttr.AREA.value: 697,
             },
         ),
         (
@@ -155,6 +163,7 @@ def multi_hypothesis_graph_2d():
                 NodeAttr.TIME.value: 1,
                 NodeAttr.SEG_HYPO.value: 1,
                 NodeAttr.SEG_ID.value: 2,
+                NodeAttr.AREA.value: 1245,
             },
         ),
     ]
@@ -256,6 +265,7 @@ def graph_3d():
                 NodeAttr.POS.value: (50, 50, 50),
                 NodeAttr.TIME.value: 0,
                 NodeAttr.SEG_ID.value: 1,
+                NodeAttr.AREA.value: 33401,
             },
         ),
         (
@@ -264,6 +274,7 @@ def graph_3d():
                 NodeAttr.POS.value: (20, 50, 80),
                 NodeAttr.TIME.value: 1,
                 NodeAttr.SEG_ID.value: 1,
+                NodeAttr.AREA.value: 4169,
             },
         ),
         (
@@ -272,6 +283,7 @@ def graph_3d():
                 NodeAttr.POS.value: (60, 50, 45),
                 NodeAttr.TIME.value: 1,
                 NodeAttr.SEG_ID.value: 2,
+                NodeAttr.AREA.value: 14147,
             },
         ),
     ]
@@ -297,6 +309,7 @@ def multi_hypothesis_graph_3d():
                 NodeAttr.TIME.value: 0,
                 NodeAttr.SEG_HYPO.value: 0,
                 NodeAttr.SEG_ID.value: 1,
+                NodeAttr.AREA.value: 305,
             },
         ),
         (
@@ -306,6 +319,7 @@ def multi_hypothesis_graph_3d():
                 NodeAttr.TIME.value: 1,
                 NodeAttr.SEG_HYPO.value: 1,
                 NodeAttr.SEG_ID.value: 1,
+                NodeAttr.AREA.value: 305,
             },
         ),
         (
@@ -315,6 +329,7 @@ def multi_hypothesis_graph_3d():
                 NodeAttr.TIME.value: 1,
                 NodeAttr.SEG_HYPO.value: 0,
                 NodeAttr.SEG_ID.value: 1,
+                NodeAttr.AREA.value: 305,
             },
         ),
         (
@@ -324,6 +339,7 @@ def multi_hypothesis_graph_3d():
                 NodeAttr.TIME.value: 1,
                 NodeAttr.SEG_HYPO.value: 0,
                 NodeAttr.SEG_ID.value: 2,
+                NodeAttr.AREA.value: 305,
             },
         ),
         (
@@ -333,6 +349,7 @@ def multi_hypothesis_graph_3d():
                 NodeAttr.TIME.value: 1,
                 NodeAttr.SEG_HYPO.value: 1,
                 NodeAttr.SEG_ID.value: 1,
+                NodeAttr.AREA.value: 305,
             },
         ),
     ]

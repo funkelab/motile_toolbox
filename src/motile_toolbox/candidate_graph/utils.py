@@ -38,9 +38,16 @@ def nodes_from_segmentation(
     segmentation: np.ndarray,
     scale: list[float] | None = None,
 ) -> tuple[nx.DiGraph, dict[int, list[Any]]]:
-    """Extract candidate nodes from a segmentation. Also computes specified attributes.
-    Returns a networkx graph with only nodes, and also a dictionary from frames to
-    node_ids for efficient edge adding.
+    """Extract candidate nodes from a segmentation. Returns a networkx graph
+    with only nodes, and also a dictionary from frames to node_ids for
+    efficient edge adding.
+
+    Each node will have the following attributes (named as in NodeAttrs):
+        - time
+        - position
+        - segmentation id
+        - area
+        - hypothesis id (optional)
 
     Args:
         segmentation (np.ndarray): A numpy array with integer labels and dimensions
@@ -77,9 +84,7 @@ def nodes_from_segmentation(
             props = regionprops(hypo, spacing=tuple(scale[1:]))
             for regionprop in props:
                 node_id = get_node_id(t, regionprop.label, hypothesis_id=hypo_id)
-                attrs = {
-                    NodeAttr.TIME.value: t,
-                }
+                attrs = {NodeAttr.TIME.value: t, NodeAttr.AREA.value: regionprop.area}
                 attrs[NodeAttr.SEG_ID.value] = regionprop.label
                 if hypo_id is not None:
                     attrs[NodeAttr.SEG_HYPO.value] = hypo_id
