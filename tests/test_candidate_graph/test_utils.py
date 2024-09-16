@@ -37,6 +37,18 @@ def test_nodes_from_segmentation_2d(segmentation_2d):
     assert node_frame_dict[0] == ["0_1"]
     assert Counter(node_frame_dict[1]) == Counter(["1_1", "1_2"])
 
+    # test with scaling
+    node_graph, node_frame_dict = nodes_from_segmentation(
+        segmentation=segmentation_2d, scale=[1, 1, 2]
+    )
+    assert Counter(list(node_graph.nodes)) == Counter(["0_1", "1_1", "1_2"])
+    assert node_graph.nodes["1_1"][NodeAttr.SEG_ID.value] == 1
+    assert node_graph.nodes["1_1"][NodeAttr.TIME.value] == 1
+    assert node_graph.nodes["1_1"][NodeAttr.POS.value] == (20, 160)
+
+    assert node_frame_dict[0] == ["0_1"]
+    assert Counter(node_frame_dict[1]) == Counter(["1_1", "1_2"])
+
 
 def test_nodes_from_segmentation_2d_hypo(
     multi_hypothesis_segmentation_2d, multi_hypothesis_graph_2d
@@ -66,6 +78,18 @@ def test_nodes_from_segmentation_3d(segmentation_3d):
     assert node_graph.nodes["1_1"][NodeAttr.SEG_ID.value] == 1
     assert node_graph.nodes["1_1"][NodeAttr.TIME.value] == 1
     assert node_graph.nodes["1_1"][NodeAttr.POS.value] == (20, 50, 80)
+
+    assert node_frame_dict[0] == ["0_1"]
+    assert Counter(node_frame_dict[1]) == Counter(["1_1", "1_2"])
+
+    # test with scaling
+    node_graph, node_frame_dict = nodes_from_segmentation(
+        segmentation=segmentation_3d, scale=[1, 1, 4.5, 1]
+    )
+    assert Counter(list(node_graph.nodes)) == Counter(["0_1", "1_1", "1_2"])
+    assert node_graph.nodes["1_1"][NodeAttr.SEG_ID.value] == 1
+    assert node_graph.nodes["1_1"][NodeAttr.TIME.value] == 1
+    assert node_graph.nodes["1_1"][NodeAttr.POS.value] == (20.0, 225.0, 80.0)
 
     assert node_frame_dict[0] == ["0_1"]
     assert Counter(node_frame_dict[1]) == Counter(["1_1", "1_2"])

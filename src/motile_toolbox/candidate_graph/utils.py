@@ -36,6 +36,7 @@ def get_node_id(time: int, label_id: int, hypothesis_id: int | None = None) -> s
 
 def nodes_from_segmentation(
     segmentation: np.ndarray,
+    scale: list[float] | None = None,
 ) -> tuple[nx.DiGraph, dict[int, list[Any]]]:
     """Extract candidate nodes from a segmentation. Also computes specified attributes.
     Returns a networkx graph with only nodes, and also a dictionary from frames to
@@ -44,6 +45,10 @@ def nodes_from_segmentation(
     Args:
         segmentation (np.ndarray): A numpy array with integer labels and dimensions
             (t, h, [z], y, x), where h is the number of hypotheses.
+        scale (list[float] | None, optional): The scale of the segmentation data.
+            Will be used to rescale the point locations and attribute computations.
+            Defaults to None, which implies the data is isotropic. Should include
+            time and all spatial dimentsions.
 
     Returns:
         tuple[nx.DiGraph, dict[int, list[Any]]]: A candidate graph with only nodes,
@@ -54,6 +59,14 @@ def nodes_from_segmentation(
     node_frame_dict: dict[int, list[Any]] = {}
     print("Extracting nodes from segmentation")
     num_hypotheses = segmentation.shape[1]
+    if scale is None:
+        scale = [
+            1,
+        ] * (segmentation.ndim - 1)  # don't include hypothesis
+    else:
+        assert (
+            len(scale) == segmentation.ndim - 1
+        ), f"Scale {scale} should have {segmentation.ndim - 1} dims"
     for t in tqdm(range(len(segmentation))):
         segs = segmentation[t]
         hypo_id: int | None
@@ -61,7 +74,7 @@ def nodes_from_segmentation(
             if num_hypotheses == 1:
                 hypo_id = None
             nodes_in_frame = []
-            props = regionprops(hypo)
+            props = regionprops(hypo, spacing=tuple(scale[1:]))
             for regionprop in props:
                 node_id = get_node_id(t, regionprop.label, hypothesis_id=hypo_id)
                 attrs = {
@@ -136,6 +149,17 @@ def _compute_node_frame_dict(cand_graph: nx.DiGraph) -> dict[int, list[Any]]:
 
 
 def create_kdtree(cand_graph: nx.DiGraph, node_ids: Iterable[Any]) -> KDTree:
+    """Create a kdtree with the given nodes from the candidate graph.
+    Will fail if provided node ids are not in the candidate graph.
+
+    Args:
+        cand_graph (nx.DiGraph): A candidate graph
+        node_ids (Iterable[Any]): The nodes within the candidate graph to
+            include in the KDTree. Useful for limiting to one time frame.
+
+    Returns:
+        KDTree: A KDTree containing the positions of the given nodes.
+    """
     positions = [cand_graph.nodes[node][NodeAttr.POS.value] for node in node_ids]
     return KDTree(positions)
 

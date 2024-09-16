@@ -15,6 +15,7 @@ def get_candidate_graph(
     segmentation: np.ndarray,
     max_edge_distance: float,
     iou: bool = False,
+    scale: list[float] | None = None,
 ) -> tuple[nx.DiGraph, list[set[Any]] | None]:
     """Construct a candidate graph from a segmentation array. Nodes are placed at the
     centroid of each segmentation and edges are added for all nodes in adjacent frames
@@ -29,6 +30,9 @@ def get_candidate_graph(
             will by connected with a candidate edge.
         iou (bool, optional): Whether to include IOU on the candidate graph.
             Defaults to False.
+        scale (list[float] | None, optional): The scale of the segmentation data.
+            Will be used to rescale the point locations and attribute computations.
+            Defaults to None, which implies the data is isotropic.
 
     Returns:
         tuple[nx.DiGraph, list[set[Any]] | None]: A candidate graph that can be passed
@@ -37,7 +41,7 @@ def get_candidate_graph(
     num_hypotheses = segmentation.shape[1]
 
     # add nodes
-    cand_graph, node_frame_dict = nodes_from_segmentation(segmentation)
+    cand_graph, node_frame_dict = nodes_from_segmentation(segmentation, scale=scale)
     logger.info(f"Candidate nodes: {cand_graph.number_of_nodes()}")
 
     # add edges
@@ -47,6 +51,9 @@ def get_candidate_graph(
         node_frame_dict=node_frame_dict,
     )
     if iou:
+        # Scale does not matter to IOU, because both numerator and denominator
+        # are scaled by the anisotropy. It would matter to compare IOUs across
+        # multiple scales of data, but this is not the current use case.
         add_iou(cand_graph, segmentation, node_frame_dict)
 
     logger.info(f"Candidate edges: {cand_graph.number_of_edges()}")
