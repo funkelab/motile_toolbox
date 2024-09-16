@@ -32,6 +32,7 @@ def test_nodes_from_segmentation_2d(segmentation_2d):
     assert Counter(list(node_graph.nodes)) == Counter(["0_1", "1_1", "1_2"])
     assert node_graph.nodes["1_1"][NodeAttr.SEG_ID.value] == 1
     assert node_graph.nodes["1_1"][NodeAttr.TIME.value] == 1
+    assert node_graph.nodes["1_1"][NodeAttr.AREA.value] == 305
     assert node_graph.nodes["1_1"][NodeAttr.POS.value] == (20, 80)
 
     assert node_frame_dict[0] == ["0_1"]
@@ -44,6 +45,7 @@ def test_nodes_from_segmentation_2d(segmentation_2d):
     assert Counter(list(node_graph.nodes)) == Counter(["0_1", "1_1", "1_2"])
     assert node_graph.nodes["1_1"][NodeAttr.SEG_ID.value] == 1
     assert node_graph.nodes["1_1"][NodeAttr.TIME.value] == 1
+    assert node_graph.nodes["1_1"][NodeAttr.AREA.value] == 610
     assert node_graph.nodes["1_1"][NodeAttr.POS.value] == (20, 160)
 
     assert node_frame_dict[0] == ["0_1"]
@@ -63,6 +65,7 @@ def test_nodes_from_segmentation_2d_hypo(
     assert node_graph.nodes["1_0_1"][NodeAttr.SEG_ID.value] == 1
     assert node_graph.nodes["1_0_1"][NodeAttr.SEG_HYPO.value] == 0
     assert node_graph.nodes["1_0_1"][NodeAttr.TIME.value] == 1
+    assert node_graph.nodes["1_0_1"][NodeAttr.AREA.value] == 305
     assert node_graph.nodes["1_0_1"][NodeAttr.POS.value] == (20, 80)
 
     assert Counter(node_frame_dict[0]) == Counter(["0_0_1", "0_1_1"])
@@ -77,6 +80,7 @@ def test_nodes_from_segmentation_3d(segmentation_3d):
     assert Counter(list(node_graph.nodes)) == Counter(["0_1", "1_1", "1_2"])
     assert node_graph.nodes["1_1"][NodeAttr.SEG_ID.value] == 1
     assert node_graph.nodes["1_1"][NodeAttr.TIME.value] == 1
+    assert node_graph.nodes["1_1"][NodeAttr.AREA.value] == 4169
     assert node_graph.nodes["1_1"][NodeAttr.POS.value] == (20, 50, 80)
 
     assert node_frame_dict[0] == ["0_1"]
@@ -88,6 +92,7 @@ def test_nodes_from_segmentation_3d(segmentation_3d):
     )
     assert Counter(list(node_graph.nodes)) == Counter(["0_1", "1_1", "1_2"])
     assert node_graph.nodes["1_1"][NodeAttr.SEG_ID.value] == 1
+    assert node_graph.nodes["1_1"][NodeAttr.AREA.value] == 4169 * 4.5
     assert node_graph.nodes["1_1"][NodeAttr.TIME.value] == 1
     assert node_graph.nodes["1_1"][NodeAttr.POS.value] == (20.0, 225.0, 80.0)
 
