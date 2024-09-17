@@ -52,8 +52,7 @@ def get_candidate_graph(
     )
     if iou:
         # Scale does not matter to IOU, because both numerator and denominator
-        # are scaled by the anisotropy. It would matter to compare IOUs across
-        # multiple scales of data, but this is not the current use case.
+        # are scaled by the anisotropy.
         add_iou(cand_graph, segmentation, node_frame_dict)
 
     logger.info(f"Candidate edges: {cand_graph.number_of_edges()}")
@@ -70,6 +69,7 @@ def get_candidate_graph(
 def get_candidate_graph_from_points_list(
     points_list: np.ndarray,
     max_edge_distance: float,
+    scale: list[float] | None = None,
 ) -> nx.DiGraph:
     """Construct a candidate graph from a points list.
 
@@ -79,13 +79,17 @@ def get_candidate_graph_from_points_list(
         max_edge_distance (float): Maximum distance that objects can travel between
             frames. All nodes with centroids within this distance in adjacent frames
             will by connected with a candidate edge.
+        scale (list[float] | None, optional): Amount to scale the points in each
+            dimension. Only needed if the provided points are in "voxel" coordinates
+            instead of world coordinates. Defaults to None, which implies the data is
+            isotropic.
 
     Returns:
         nx.DiGraph: A candidate graph that can be passed to the motile solver.
         Multiple hypotheses not supported for points input.
     """
     # add nodes
-    cand_graph, node_frame_dict = nodes_from_points_list(points_list)
+    cand_graph, node_frame_dict = nodes_from_points_list(points_list, scale=scale)
     logger.info(f"Candidate nodes: {cand_graph.number_of_nodes()}")
     # add edges
     add_cand_edges(

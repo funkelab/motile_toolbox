@@ -6,6 +6,7 @@ from motile_toolbox.candidate_graph import EdgeAttr, get_candidate_graph
 from motile_toolbox.candidate_graph.compute_graph import (
     get_candidate_graph_from_points_list,
 )
+from motile_toolbox.candidate_graph.graph_attributes import NodeAttr
 
 
 def test_graph_from_segmentation_2d(segmentation_2d, graph_2d):
@@ -91,6 +92,7 @@ def test_graph_from_multi_segmentation_2d(
 def test_graph_from_points_list():
     points_list = np.array(
         [
+            # t, z, y, x
             [0, 1, 1, 1],
             [2, 3, 3, 3],
             [1, 2, 2, 2],
@@ -101,3 +103,12 @@ def test_graph_from_points_list():
     cand_graph = get_candidate_graph_from_points_list(points_list, max_edge_distance=3)
     assert cand_graph.number_of_edges() == 3
     assert len(cand_graph.in_edges(3)) == 0
+
+    # test scale
+    cand_graph = get_candidate_graph_from_points_list(
+        points_list, max_edge_distance=3, scale=[1, 1, 1, 5]
+    )
+    assert cand_graph.number_of_edges() == 0
+    assert len(cand_graph.in_edges(3)) == 0
+    assert cand_graph.nodes[0][NodeAttr.POS.value] == [1, 1, 5]
+    assert cand_graph.nodes[0][NodeAttr.TIME.value] == 0
