@@ -1,5 +1,6 @@
 import logging
-from typing import Any, Iterable
+from collections.abc import Iterable
+from typing import Any
 
 import networkx as nx
 import numpy as np
@@ -64,7 +65,7 @@ def nodes_from_segmentation(
     cand_graph = nx.DiGraph()
     # also construct a dictionary from time frame to node_id for efficiency
     node_frame_dict: dict[int, list[Any]] = {}
-    print("Extracting nodes from segmentation")
+    logger.info("Extracting nodes from segmentation")
     num_hypotheses = segmentation.shape[1]
     if scale is None:
         scale = [
@@ -101,6 +102,7 @@ def nodes_from_segmentation(
 
 def nodes_from_points_list(
     points_list: np.ndarray,
+    scale: list[float] | None = None,
 ) -> tuple[nx.DiGraph, dict[int, list[Any]]]:
     """Extract candidate nodes from a list of points. Uses the index of the
     point in the list as its unique id.
@@ -110,6 +112,10 @@ def nodes_from_points_list(
     Args:
         points_list (np.ndarray): An NxD numpy array with N points and D
             (3 or 4) dimensions. Dimensions should be in order (t, [z], y, x).
+        scale (list[float] | None, optional): Amount to scale the points in each
+            dimension. Only needed if the provided points are in "voxel" coordinates
+            instead of world coordinates. Defaults to None, which implies the data is
+            isotropic.
 
     Returns:
         tuple[nx.DiGraph, dict[int, list[Any]]]: A candidate graph with only nodes,
@@ -118,7 +124,16 @@ def nodes_from_points_list(
     cand_graph = nx.DiGraph()
     # also construct a dictionary from time frame to node_id for efficiency
     node_frame_dict: dict[int, list[Any]] = {}
-    print("Extracting nodes from points list")
+    logger.info("Extracting nodes from points list")
+
+    # scale points
+    if scale is not None:
+        assert (
+            len(scale) == points_list.shape[1]
+        ), f"Cannot scale points with {points_list.size[1]} dims by factor {scale}"
+        points_list = points_list * np.array(scale)
+
+    # add points to graph
     for i, point in enumerate(points_list):
         # assume t, [z], y, x
         t = point[0]
@@ -187,7 +202,7 @@ def add_cand_edges(
             to node ids. If not provided, it will be computed from cand_graph. Defaults
             to None.
     """
-    print("Extracting candidate edges")
+    logger.info("Extracting candidate edges")
     if not node_frame_dict:
         node_frame_dict = _compute_node_frame_dict(cand_graph)
 
@@ -202,7 +217,9 @@ def add_cand_edges(
 
         matched_indices = prev_kdtree.query_ball_tree(next_kdtree, max_edge_distance)
 
-        for prev_node_id, next_node_indices in zip(prev_node_ids, matched_indices):
+        for prev_node_id, next_node_indices in zip(
+            prev_node_ids, matched_indices, strict=False
+        ):
             for next_node_index in next_node_indices:
                 next_node_id = next_node_ids[next_node_index]
                 cand_graph.add_edge(prev_node_id, next_node_id)
