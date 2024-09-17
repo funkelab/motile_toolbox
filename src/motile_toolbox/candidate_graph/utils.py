@@ -130,7 +130,7 @@ def nodes_from_points_list(
     if scale is not None:
         assert (
             len(scale) == points_list.shape[1]
-        ), f"Cannot scale points with {points_list.size[1]} dims by factor {scale}"
+        ), f"Cannot scale points with {points_list.shape[1]} dims by factor {scale}"
         points_list = points_list * np.array(scale)
 
     # add points to graph
