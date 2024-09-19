@@ -1,11 +1,13 @@
+from typing import Any
+
 import networkx as nx
 import numpy as np
 
 from motile_toolbox.candidate_graph import NodeAttr
 
 
-def assign_tracklet_ids(graph: nx.DiGraph) -> nx.DiGraph:
-    """Add a tracklet_id attribute to a graph by removing division edges,
+def assign_tracklet_ids(graph: nx.DiGraph) -> tuple[nx.DiGraph, list[Any], int]:
+    """Add a track_id attribute to a graph by removing division edges,
     assigning one id to each connected component.
     Designed as a helper for visualizing the graph in the napari Tracks layer.
 
@@ -13,8 +15,10 @@ def assign_tracklet_ids(graph: nx.DiGraph) -> nx.DiGraph:
         graph (nx.DiGraph): A networkx graph with a tracking solution
 
     Returns:
-        nx.DiGraph: The same graph with the tracklet_id assigned. Probably
-        occurrs in place but returned just to be clear.
+        nx.DiGraph, list[Any], int: The same graph with the track_id assigned. Probably
+        occurrs in place but returned just to be clear. Also returns a list of edges
+        that are between tracks (e.g. at divisions), and the max track ID that was
+        assigned
     """
     graph_copy = graph.copy()
 
@@ -31,10 +35,10 @@ def assign_tracklet_ids(graph: nx.DiGraph) -> nx.DiGraph:
     track_id = 1
     for tracklet in nx.weakly_connected_components(graph_copy):
         nx.set_node_attributes(
-            graph, {node: {"tracklet_id": track_id} for node in tracklet}
+            graph, {node: {NodeAttr.TRACK_ID.value: track_id} for node in tracklet}
         )
         track_id += 1
-    return graph, intertrack_edges
+    return graph, intertrack_edges, track_id
 
 
 def _get_location(graph, node, location_key):
@@ -45,7 +49,10 @@ def _get_location(graph, node, location_key):
 
 
 def to_napari_tracks_layer(
-    graph, frame_key=NodeAttr.TIME.value, location_key=NodeAttr.POS.value, properties=()
+    graph,
+    frame_key=NodeAttr.TIME.value,
+    location_key=NodeAttr.POS.value,
+    properties=(),
 ):
     """Function to take a networkx graph and return the data needed to add to
     a napari tracks layer.
@@ -78,18 +85,18 @@ def to_napari_tracks_layer(
     napari_data = np.zeros((graph.number_of_nodes(), ndim + 2))
     napari_properties = {prop: np.zeros(graph.number_of_nodes()) for prop in properties}
     napari_edges = {}
-    graph, intertrack_edges = assign_tracklet_ids(graph)
+    graph, intertrack_edges, _ = assign_tracklet_ids(graph)
     for index, node in enumerate(graph.nodes(data=True)):
         node_id, data = node
         location = _get_location(graph, node_id, location_key)
-        napari_data[index] = [data["tracklet_id"], data[frame_key], *location]
+        napari_data[index] = [data[NodeAttr.TRACK_ID.value], data[frame_key], *location]
         for prop in properties:
             if prop in data:
                 napari_properties[prop][index] = data[prop]
     napari_edges = {}
     for parent, child in intertrack_edges:
-        parent_track_id = graph.nodes[parent]["tracklet_id"]
-        child_track_id = graph.nodes[child]["tracklet_id"]
+        parent_track_id = graph.nodes[parent][NodeAttr.TRACK_ID.value]
+        child_track_id = graph.nodes[child][NodeAttr.TRACK_ID.value]
         if child_track_id in napari_edges:
             napari_edges[child_track_id].append(parent_track_id)
         else:

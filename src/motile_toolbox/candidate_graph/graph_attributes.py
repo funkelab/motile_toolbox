@@ -12,6 +12,7 @@ class NodeAttr(Enum):
     SEG_ID = "seg_id"
     SEG_HYPO = "seg_hypo"
     AREA = "area"
+    TRACK_ID = "track_id"
 
 
 class EdgeAttr(Enum):
