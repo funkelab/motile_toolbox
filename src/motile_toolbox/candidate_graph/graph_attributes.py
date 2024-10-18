@@ -7,12 +7,12 @@ class NodeAttr(Enum):
     implementations of commonly used ones, listed here.
     """
 
-    POS = "pos"
-    TIME = "time"
-    SEG_ID = "seg_id"
-    SEG_HYPO = "seg_hypo"
-    AREA = "area"
-    TRACK_ID = "track_id"
+    POS: str = "pos"
+    TIME: str = "time"
+    SEG_ID: str = "seg_id"
+    SEG_HYPO: str = "seg_hypo"
+    AREA: str = "area"
+    TRACK_ID: str = "track_id"
 
 
 class EdgeAttr(Enum):
@@ -21,4 +21,4 @@ class EdgeAttr(Enum):
     implementations of commonly used ones, listed here.
     """
 
-    IOU = "iou"
+    IOU: str = "iou"
