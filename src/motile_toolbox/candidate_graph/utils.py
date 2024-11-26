@@ -13,28 +13,6 @@ from .graph_attributes import NodeAttr
 logger = logging.getLogger(__name__)
 
 
-def get_node_id(time: int, label_id: int, hypothesis_id: int | None = None) -> str:
-    """Construct a node id given the time frame, segmentation label id, and
-    optionally the hypothesis id. This function is not designed for candidate graphs
-    that do not come from segmentations, but could be used if there is a similar
-    "detection id" that is unique for all cells detected in a given frame.
-
-    Args:
-        time (int): The time frame the node is in
-        label_id (int): The label the node has in the segmentation.
-        hypothesis_id (int | None, optional): An integer representing which hypothesis
-            the segmentation came from, if applicable. Defaults to None.
-
-    Returns:
-        str: A string to use as the node id in the candidate graph. Assuming that label
-        ids are not repeated in the same time frame and hypothesis, it is unique.
-    """
-    if hypothesis_id is not None:
-        return f"{time}_{hypothesis_id}_{label_id}"
-    else:
-        return f"{time}_{label_id}"
-
-
 def nodes_from_segmentation(
     segmentation: np.ndarray,
     scale: list[float] | None = None,
@@ -52,7 +30,9 @@ def nodes_from_segmentation(
 
     Args:
         segmentation (np.ndarray): A numpy array with integer labels and dimensions
-            (t, [z], y, x).
+            (t, [z], y, x). Labels must be unique across time, and the label
+            will be used as the node id. If the labels are not unique, preprocess
+            with motile_toolbox.utils.ensure_unqiue_ids before calling this function.
         scale (list[float] | None, optional): The scale of the segmentation data in all
             dimensions (including time, which should have a dummy 1 value).
             Will be used to rescale the point locations and attribute computations.
@@ -82,7 +62,7 @@ def nodes_from_segmentation(
         nodes_in_frame = []
         props = regionprops(segs, spacing=tuple(scale[1:]))
         for regionprop in props:
-            node_id = get_node_id(t, regionprop.label, hypothesis_id=seg_hypo)
+            node_id = regionprop.label
             attrs = {NodeAttr.TIME.value: t, NodeAttr.AREA.value: regionprop.area}
             attrs[NodeAttr.SEG_ID.value] = regionprop.label
             if seg_hypo:
