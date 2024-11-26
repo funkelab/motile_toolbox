@@ -32,9 +32,9 @@ def _compute_ious(
 
     values, counts = np.unique(flattened_stacked, axis=1, return_counts=True)
     frame1_values, frame1_counts = np.unique(frame1, return_counts=True)
-    frame1_label_sizes = dict(zip(frame1_values, frame1_counts, strict=False))
+    frame1_label_sizes = dict(zip(frame1_values, frame1_counts, strict=True))
     frame2_values, frame2_counts = np.unique(frame2, return_counts=True)
-    frame2_label_sizes = dict(zip(frame2_values, frame2_counts, strict=False))
+    frame2_label_sizes = dict(zip(frame2_values, frame2_counts, strict=True))
     ious: list[tuple[int, int, float]] = []
     for index in range(values.shape[1]):
         pair = values[:, index]

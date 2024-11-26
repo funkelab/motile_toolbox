@@ -75,6 +75,10 @@ ignore = [
     "S101", # Use of assert detected
 ]
 
+unfixable = [
+  "B905", # currently adds strict=False to zips. Should add strict=True (manually)
+]
+
 [tool.ruff.lint.per-file-ignores]
 "tests/*.py" = ["D", "S"]
 "*/__init__.py" = ["F401", "D"]
