@@ -5,13 +5,13 @@ from pytest_unordered import unordered
 
 def test_conflict_sets_2d(multi_hypothesis_segmentation_2d):
     for t in range(multi_hypothesis_segmentation_2d.shape[0]):
-        conflict_set = compute_conflict_sets(multi_hypothesis_segmentation_2d[:, t], t)
+        conflict_set = compute_conflict_sets(multi_hypothesis_segmentation_2d[:, t])
         if t == 0:
-            expected = [{"0_1_1", "0_0_1"}]
+            expected = [{2, 1}]
             assert len(conflict_set) == 1
             assert conflict_set == unordered(expected)
         elif t == 1:
-            expected = [{"1_0_2", "1_1_2"}, {"1_0_1", "1_1_1"}]
+            expected = [{3, 4}, {5, 6}]
             assert len(conflict_set) == 2
             assert conflict_set == unordered(expected)
 
@@ -23,17 +23,20 @@ def test_conflict_sets_2d_reshaped(multi_hypothesis_segmentation_2d):
         [
             multi_hypothesis_segmentation_2d[0, 0],  # hypothesis 0
             multi_hypothesis_segmentation_2d[0, 1],  # hypothesis 1
-            multi_hypothesis_segmentation_2d[1, 1],
+            multi_hypothesis_segmentation_2d[
+                1, 1
+            ],  # hypothesis 2 (time 1 hypothesis 1)
         ]
-    )  # hypothesis 2
-    conflict_set = compute_conflict_sets(reshaped, 0)
+    )  # this is simulating one frame of multi hypothesis data
+    conflict_set = compute_conflict_sets(reshaped)
     # note the expected ids are not really there since the
     # reshaped array is artifically constructed
+
     expected = [
-        {"0_0_1", "0_1_2", "0_2_2"},
-        {"0_1_1", "0_2_1"},
-        {"0_0_1", "0_1_2"},
-        {"0_1_2", "0_2_2"},
-        {"0_0_1", "0_2_2"},
+        {1, 5, 6},
+        {3, 4},
+        {1, 5},
+        {5, 6},
+        {1, 6},
     ]
     assert conflict_set == unordered(expected)

@@ -36,8 +36,8 @@ def test_graph_from_segmentation_2d(segmentation_2d, graph_2d):
         segmentation=segmentation_2d,
         max_edge_distance=15,
     )
-    assert Counter(list(cand_graph.nodes)) == Counter(["0_1", "1_1", "1_2"])
-    assert Counter(list(cand_graph.edges)) == Counter([("0_1", "1_2")])
+    assert Counter(list(cand_graph.nodes)) == Counter([1, 2, 3])
+    assert Counter(list(cand_graph.edges)) == Counter([(1, 3)])
 
 
 def test_graph_from_segmentation_3d(segmentation_3d, graph_3d):
@@ -88,9 +88,7 @@ def test_graph_from_multi_segmentation_2d(
     assert Counter(list(cand_graph.nodes)) == Counter(
         list(multi_hypothesis_graph_2d.nodes)
     )
-    assert Counter(list(cand_graph.edges)) == Counter(
-        [("0_0_1", "1_0_2"), ("0_0_1", "1_1_2"), ("0_1_1", "1_1_2")]
-    )
+    assert Counter(list(cand_graph.edges)) == Counter([(1, 5), (1, 6), (2, 6)])
 
 
 def test_graph_from_points_list():

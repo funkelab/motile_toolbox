@@ -7,13 +7,13 @@ from motile_toolbox.candidate_graph.iou import _compute_ious
 def test_compute_ious_2d(segmentation_2d):
     ious = _compute_ious(segmentation_2d[0], segmentation_2d[1])
     expected = [
-        (1, 2, 555.46 / 1408.0),
+        (1, 3, 555.46 / 1408.0),
     ]
     for iou, expected_iou in zip(ious, expected, strict=False):
         assert iou == pytest.approx(expected_iou, abs=0.01)
 
     ious = _compute_ious(segmentation_2d[1], segmentation_2d[1])
-    expected = [(1, 1, 1.0), (2, 2, 1.0)]
+    expected = [(2, 2, 1.0), (3, 3, 1.0)]
     for iou, expected_iou in zip(ious, expected, strict=False):
         assert iou == pytest.approx(expected_iou, abs=0.01)
 
