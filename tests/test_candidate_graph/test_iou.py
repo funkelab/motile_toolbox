@@ -20,12 +20,12 @@ def test_compute_ious_2d(segmentation_2d):
 
 def test_compute_ious_3d(segmentation_3d):
     ious = _compute_ious(segmentation_3d[0], segmentation_3d[1])
-    expected = [(1, 2, 0.30)]
+    expected = [(1, 3, 0.30)]
     for iou, expected_iou in zip(ious, expected, strict=False):
         assert iou == pytest.approx(expected_iou, abs=0.01)
 
     ious = _compute_ious(segmentation_3d[1], segmentation_3d[1])
-    expected = [(1, 1, 1.0), (2, 2, 1.0)]
+    expected = [(2, 2, 1.0), (3, 3, 1.0)]
     for iou, expected_iou in zip(ious, expected, strict=False):
         assert iou == pytest.approx(expected_iou, abs=0.01)
 

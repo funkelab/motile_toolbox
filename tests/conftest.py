@@ -213,12 +213,12 @@ def segmentation_3d():
     segmentation[0][mask] = 1
 
     # make frame with two cells
-    # first cell centered at (20, 50, 80) with label 1
-    # second cell centered at (60, 50, 45) with label 2
+    # first cell centered at (20, 50, 80) with label 2
+    # second cell centered at (60, 50, 45) with label 3
     mask = sphere(center=(20, 50, 80), radius=10, shape=frame_shape)
-    segmentation[1][mask] = 1
-    mask = sphere(center=(60, 50, 45), radius=15, shape=frame_shape)
     segmentation[1][mask] = 2
+    mask = sphere(center=(60, 50, 45), radius=15, shape=frame_shape)
+    segmentation[1][mask] = 3
 
     return segmentation
 
@@ -261,7 +261,7 @@ def graph_3d():
     graph = nx.DiGraph()
     nodes = [
         (
-            "0_1",
+            1,
             {
                 NodeAttr.POS.value: (50, 50, 50),
                 NodeAttr.TIME.value: 0,
@@ -270,97 +270,29 @@ def graph_3d():
             },
         ),
         (
-            "1_1",
+            2,
             {
                 NodeAttr.POS.value: (20, 50, 80),
                 NodeAttr.TIME.value: 1,
-                NodeAttr.SEG_ID.value: 1,
+                NodeAttr.SEG_ID.value: 2,
                 NodeAttr.AREA.value: 4169,
             },
         ),
         (
-            "1_2",
+            3,
             {
                 NodeAttr.POS.value: (60, 50, 45),
                 NodeAttr.TIME.value: 1,
-                NodeAttr.SEG_ID.value: 2,
+                NodeAttr.SEG_ID.value: 3,
                 NodeAttr.AREA.value: 14147,
             },
         ),
     ]
     edges = [
         # math.dist([50, 50], [20, 80])
-        ("0_1", "1_1"),
+        (1, 2),
         # math.dist([50, 50], [60, 45])
-        ("0_1", "1_2"),
-    ]
-    graph.add_nodes_from(nodes)
-    graph.add_edges_from(edges)
-    return graph
-
-
-@pytest.fixture
-def multi_hypothesis_graph_3d():
-    graph = nx.DiGraph()
-    nodes = [
-        (
-            "0_0_1",
-            {
-                NodeAttr.POS.value: (50, 50, 50),
-                NodeAttr.TIME.value: 0,
-                NodeAttr.SEG_HYPO.value: 0,
-                NodeAttr.SEG_ID.value: 1,
-                NodeAttr.AREA.value: 305,
-            },
-        ),
-        (
-            "0_1_1",
-            {
-                NodeAttr.POS.value: (45, 50, 55),
-                NodeAttr.TIME.value: 1,
-                NodeAttr.SEG_HYPO.value: 1,
-                NodeAttr.SEG_ID.value: 1,
-                NodeAttr.AREA.value: 305,
-            },
-        ),
-        (
-            "1_0_1",
-            {
-                NodeAttr.POS.value: (20, 50, 80),
-                NodeAttr.TIME.value: 1,
-                NodeAttr.SEG_HYPO.value: 0,
-                NodeAttr.SEG_ID.value: 1,
-                NodeAttr.AREA.value: 305,
-            },
-        ),
-        (
-            "1_0_2",
-            {
-                NodeAttr.POS.value: (60, 50, 45),
-                NodeAttr.TIME.value: 1,
-                NodeAttr.SEG_HYPO.value: 0,
-                NodeAttr.SEG_ID.value: 2,
-                NodeAttr.AREA.value: 305,
-            },
-        ),
-        (
-            "1_1_1",
-            {
-                NodeAttr.POS.value: (15, 50, 70),
-                NodeAttr.TIME.value: 1,
-                NodeAttr.SEG_HYPO.value: 1,
-                NodeAttr.SEG_ID.value: 1,
-                NodeAttr.AREA.value: 305,
-            },
-        ),
-    ]
-    edges = [
-        ("0_0_1", "1_0_1"),
-        ("0_0_1", "1_0_2"),
-        ("0_1_1", "1_0_1"),
-        ("0_1_1", "1_0_2"),
-        ("0_0_1", "1_1_1"),
-        ("0_1_1", "1_1_1"),
+        (1, 3),
     ]
     graph.add_nodes_from(nodes)
     graph.add_edges_from(edges)
