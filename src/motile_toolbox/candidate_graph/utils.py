@@ -38,6 +38,7 @@ def get_node_id(time: int, label_id: int, hypothesis_id: int | None = None) -> s
 def nodes_from_segmentation(
     segmentation: np.ndarray,
     scale: list[float] | None = None,
+    seg_hypo=None,
 ) -> tuple[nx.DiGraph, dict[int, list[Any]]]:
     """Extract candidate nodes from a segmentation. Returns a networkx graph
     with only nodes, and also a dictionary from frames to node_ids for
@@ -48,55 +49,52 @@ def nodes_from_segmentation(
         - position
         - segmentation id
         - area
-        - hypothesis id (optional)
 
     Args:
         segmentation (np.ndarray): A numpy array with integer labels and dimensions
-            (t, h, [z], y, x), where h is the number of hypotheses.
-        scale (list[float] | None, optional): The scale of the segmentation data.
+            (t, [z], y, x).
+        scale (list[float] | None, optional): The scale of the segmentation data in all
+            dimensions (including time, which should have a dummy 1 value).
             Will be used to rescale the point locations and attribute computations.
-            Defaults to None, which implies the data is isotropic. Should include
-            time and all spatial dimentsions.
+            Defaults to None, which implies the data is isotropic.
+        seg_hypo (int | None): A number to be stored in NodeAttr.SEG_HYPO, if given.
 
     Returns:
         tuple[nx.DiGraph, dict[int, list[Any]]]: A candidate graph with only nodes,
             and a mapping from time frames to node ids.
     """
+    logger.debug("Extracting nodes from segmentation")
     cand_graph = nx.DiGraph()
     # also construct a dictionary from time frame to node_id for efficiency
     node_frame_dict: dict[int, list[Any]] = {}
-    logger.info("Extracting nodes from segmentation")
-    num_hypotheses = segmentation.shape[1]
+
     if scale is None:
         scale = [
             1,
-        ] * (segmentation.ndim - 1)  # don't include hypothesis
+        ] * segmentation.ndim
     else:
         assert (
-            len(scale) == segmentation.ndim - 1
-        ), f"Scale {scale} should have {segmentation.ndim - 1} dims"
+            len(scale) == segmentation.ndim
+        ), f"Scale {scale} should have {segmentation.ndim} dims"
+
     for t in tqdm(range(len(segmentation))):
         segs = segmentation[t]
-        hypo_id: int | None
-        for hypo_id, hypo in enumerate(segs):
-            if num_hypotheses == 1:
-                hypo_id = None
-            nodes_in_frame = []
-            props = regionprops(hypo, spacing=tuple(scale[1:]))
-            for regionprop in props:
-                node_id = get_node_id(t, regionprop.label, hypothesis_id=hypo_id)
-                attrs = {NodeAttr.TIME.value: t, NodeAttr.AREA.value: regionprop.area}
-                attrs[NodeAttr.SEG_ID.value] = regionprop.label
-                if hypo_id is not None:
-                    attrs[NodeAttr.SEG_HYPO.value] = hypo_id
-                centroid = regionprop.centroid  # [z,] y, x
-                attrs[NodeAttr.POS.value] = centroid
-                cand_graph.add_node(node_id, **attrs)
-                nodes_in_frame.append(node_id)
-            if nodes_in_frame:
-                if t not in node_frame_dict:
-                    node_frame_dict[t] = []
-                node_frame_dict[t].extend(nodes_in_frame)
+        nodes_in_frame = []
+        props = regionprops(segs, spacing=tuple(scale[1:]))
+        for regionprop in props:
+            node_id = get_node_id(t, regionprop.label, hypothesis_id=seg_hypo)
+            attrs = {NodeAttr.TIME.value: t, NodeAttr.AREA.value: regionprop.area}
+            attrs[NodeAttr.SEG_ID.value] = regionprop.label
+            if seg_hypo:
+                attrs[NodeAttr.SEG_HYPO.value] = seg_hypo
+            centroid = regionprop.centroid  # [z,] y, x
+            attrs[NodeAttr.POS.value] = centroid
+            cand_graph.add_node(node_id, **attrs)
+            nodes_in_frame.append(node_id)
+        if nodes_in_frame:
+            if t not in node_frame_dict:
+                node_frame_dict[t] = []
+            node_frame_dict[t].extend(nodes_in_frame)
     return cand_graph, node_frame_dict
 
 
@@ -113,9 +111,9 @@ def nodes_from_points_list(
         points_list (np.ndarray): An NxD numpy array with N points and D
             (3 or 4) dimensions. Dimensions should be in order (t, [z], y, x).
         scale (list[float] | None, optional): Amount to scale the points in each
-            dimension. Only needed if the provided points are in "voxel" coordinates
-            instead of world coordinates. Defaults to None, which implies the data is
-            isotropic.
+            dimension (including time). Only needed if the provided points are in
+            "voxel" coordinates instead of world coordinates. Defaults to None, which
+            implies the data is isotropic.
 
     Returns:
         tuple[nx.DiGraph, dict[int, list[Any]]]: A candidate graph with only nodes,

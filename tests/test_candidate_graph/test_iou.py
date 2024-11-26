@@ -9,24 +9,24 @@ def test_compute_ious_2d(segmentation_2d):
     expected = [
         (1, 2, 555.46 / 1408.0),
     ]
-    for iou, expected_iou in zip(ious, expected):
+    for iou, expected_iou in zip(ious, expected, strict=False):
         assert iou == pytest.approx(expected_iou, abs=0.01)
 
     ious = _compute_ious(segmentation_2d[1], segmentation_2d[1])
     expected = [(1, 1, 1.0), (2, 2, 1.0)]
-    for iou, expected_iou in zip(ious, expected):
+    for iou, expected_iou in zip(ious, expected, strict=False):
         assert iou == pytest.approx(expected_iou, abs=0.01)
 
 
 def test_compute_ious_3d(segmentation_3d):
     ious = _compute_ious(segmentation_3d[0], segmentation_3d[1])
     expected = [(1, 2, 0.30)]
-    for iou, expected_iou in zip(ious, expected):
+    for iou, expected_iou in zip(ious, expected, strict=False):
         assert iou == pytest.approx(expected_iou, abs=0.01)
 
     ious = _compute_ious(segmentation_3d[1], segmentation_3d[1])
     expected = [(1, 1, 1.0), (2, 2, 1.0)]
-    for iou, expected_iou in zip(ious, expected):
+    for iou, expected_iou in zip(ious, expected, strict=False):
         assert iou == pytest.approx(expected_iou, abs=0.01)
 
 
@@ -46,9 +46,9 @@ def test_multi_hypo_iou_2d(multi_hypothesis_segmentation_2d, multi_hypothesis_gr
     expected = multi_hypothesis_graph_2d
     input_graph = multi_hypothesis_graph_2d.copy()
     nx.set_edge_attributes(input_graph, -1, name=EdgeAttr.IOU.value)
-    add_iou(input_graph, multi_hypothesis_segmentation_2d)
+    add_iou(input_graph, multi_hypothesis_segmentation_2d, multiseg=True)
     for s, t, attrs in expected.edges(data=True):
-        print(s, t)
+        print(s, t, attrs)
         assert (
             pytest.approx(attrs[EdgeAttr.IOU.value], abs=0.01)
             == input_graph.edges[(s, t)][EdgeAttr.IOU.value]

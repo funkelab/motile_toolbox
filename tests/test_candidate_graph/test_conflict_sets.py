@@ -5,7 +5,7 @@ from pytest_unordered import unordered
 
 def test_conflict_sets_2d(multi_hypothesis_segmentation_2d):
     for t in range(multi_hypothesis_segmentation_2d.shape[0]):
-        conflict_set = compute_conflict_sets(multi_hypothesis_segmentation_2d[t], t)
+        conflict_set = compute_conflict_sets(multi_hypothesis_segmentation_2d[:, t], t)
         if t == 0:
             expected = [{"0_1_1", "0_0_1"}]
             assert len(conflict_set) == 1
@@ -22,7 +22,7 @@ def test_conflict_sets_2d_reshaped(multi_hypothesis_segmentation_2d):
     reshaped = np.asarray(
         [
             multi_hypothesis_segmentation_2d[0, 0],  # hypothesis 0
-            multi_hypothesis_segmentation_2d[1, 0],  # hypothesis 1
+            multi_hypothesis_segmentation_2d[0, 1],  # hypothesis 1
             multi_hypothesis_segmentation_2d[1, 1],
         ]
     )  # hypothesis 2

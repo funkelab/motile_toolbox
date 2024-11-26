@@ -52,26 +52,6 @@ def test_nodes_from_segmentation_2d(segmentation_2d):
     assert Counter(node_frame_dict[1]) == Counter(["1_1", "1_2"])
 
 
-def test_nodes_from_segmentation_2d_hypo(
-    multi_hypothesis_segmentation_2d, multi_hypothesis_graph_2d
-):
-    # test with 2D segmentation
-    node_graph, node_frame_dict = nodes_from_segmentation(
-        segmentation=multi_hypothesis_segmentation_2d
-    )
-    assert Counter(list(node_graph.nodes)) == Counter(
-        list(multi_hypothesis_graph_2d.nodes)
-    )
-    assert node_graph.nodes["1_0_1"][NodeAttr.SEG_ID.value] == 1
-    assert node_graph.nodes["1_0_1"][NodeAttr.SEG_HYPO.value] == 0
-    assert node_graph.nodes["1_0_1"][NodeAttr.TIME.value] == 1
-    assert node_graph.nodes["1_0_1"][NodeAttr.AREA.value] == 305
-    assert node_graph.nodes["1_0_1"][NodeAttr.POS.value] == (20, 80)
-
-    assert Counter(node_frame_dict[0]) == Counter(["0_0_1", "0_1_1"])
-    assert Counter(node_frame_dict[1]) == Counter(["1_0_1", "1_0_2", "1_1_1", "1_1_2"])
-
-
 def test_nodes_from_segmentation_3d(segmentation_3d):
     # test with 3D segmentation
     node_graph, node_frame_dict = nodes_from_segmentation(
@@ -116,7 +96,6 @@ def test_add_cand_edges_3d(graph_3d):
 
 def test_get_node_id():
     assert get_node_id(0, 2) == "0_2"
-    assert get_node_id(2, 10, 3) == "2_3_10"
 
 
 def test_compute_node_frame_dict(graph_2d):

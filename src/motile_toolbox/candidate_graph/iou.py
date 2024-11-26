@@ -32,9 +32,9 @@ def _compute_ious(
 
     values, counts = np.unique(flattened_stacked, axis=1, return_counts=True)
     frame1_values, frame1_counts = np.unique(frame1, return_counts=True)
-    frame1_label_sizes = dict(zip(frame1_values, frame1_counts))
+    frame1_label_sizes = dict(zip(frame1_values, frame1_counts, strict=True))
     frame2_values, frame2_counts = np.unique(frame2, return_counts=True)
-    frame2_label_sizes = dict(zip(frame2_values, frame2_counts))
+    frame2_label_sizes = dict(zip(frame2_values, frame2_counts, strict=True))
     ious: list[tuple[int, int, float]] = []
     for index in range(values.shape[1]):
         pair = values[:, index]
@@ -45,37 +45,46 @@ def _compute_ious(
     return ious
 
 
-def _get_iou_dict(segmentation) -> dict[str, dict[str, float]]:
-    """Get all ious values for the provided segmentation (all frames).
+def _get_iou_dict(segmentation, multiseg=False) -> dict[str, dict[str, float]]:
+    """Get all ious values for the provided segmentations (all frames).
     Will return as map from node_id -> dict[node_id] -> iou for easy
     navigation when adding to candidate graph.
 
     Args:
-        segmentation (np.ndarray): Segmentation that was used to create cand_graph.
-            Has shape (t, h, [z], y, x), where h is the number of hypotheses.
+        segmentation (np.ndarray): Segmentations that were used to create cand_graph.
+            Has shape ([h], t, [z], y, x), where h is the number of hypotheses
+            if multiseg is True.
+        multiseg (bool): Flag indicating if the provided segmentation contains
+            multiple hypothesis segmentations. Defaults to False.
 
     Returns:
         dict[str, dict[str, float]]: A map from node id to another dictionary, which
             contains node_ids to iou values.
     """
     iou_dict: dict[str, dict[str, float]] = {}
-    hypo_pairs: list[tuple[int | None, ...]]
-    num_hypotheses = segmentation.shape[1]
-    if num_hypotheses > 1:
-        hypo_pairs = list(product(range(num_hypotheses), repeat=2))
+    hypo_pairs: list[tuple[int, ...]] = [(0, 0)]
+    if multiseg:
+        num_hypotheses = segmentation.shape[0]
+        if num_hypotheses > 1:
+            hypo_pairs = list(product(range(num_hypotheses), repeat=2))
     else:
-        hypo_pairs = [(None, None)]
+        segmentation = np.expand_dims(segmentation, 0)
 
-    for frame in range(len(segmentation) - 1):
+    for frame in range(segmentation.shape[1] - 1):
         for hypo1, hypo2 in hypo_pairs:
-            seg1 = segmentation[frame][hypo1]
-            seg2 = segmentation[frame + 1][hypo2]
+            seg1 = segmentation[hypo1][frame]
+            seg2 = segmentation[hypo2][frame + 1]
             ious = _compute_ious(seg1, seg2)
             for label1, label2, iou in ious:
-                node_id1 = get_node_id(frame, label1, hypo1)
+                if multiseg:
+                    node_id1 = get_node_id(frame, label1, hypo1)
+                    node_id2 = get_node_id(frame + 1, label2, hypo2)
+                else:
+                    node_id1 = get_node_id(frame, label1)
+                    node_id2 = get_node_id(frame + 1, label2)
+
                 if node_id1 not in iou_dict:
                     iou_dict[node_id1] = {}
-                node_id2 = get_node_id(frame + 1, label2, hypo2)
                 iou_dict[node_id1][node_id2] = iou
     return iou_dict
 
@@ -84,22 +93,26 @@ def add_iou(
     cand_graph: nx.DiGraph,
     segmentation: np.ndarray,
     node_frame_dict: dict[int, list[Any]] | None = None,
+    multiseg=False,
 ) -> None:
     """Add IOU to the candidate graph.
 
     Args:
         cand_graph (nx.DiGraph): Candidate graph with nodes and edges already populated
         segmentation (np.ndarray): segmentation that was used to create cand_graph.
-            Has shape (t, h, [z], y, x), where h is the number of hypotheses.
+            Has shape ([h], t, [z], y, x), where h is the number of hypotheses if
+            multiseg is True.
         node_frame_dict(dict[int, list[Any]] | None, optional): A mapping from
             time frames to nodes in that frame. Will be computed if not provided,
             but can be provided for efficiency (e.g. after running
             nodes_from_segmentation). Defaults to None.
+        multiseg (bool): Flag indicating if the given segmentation is actually multiple
+            stacked segmentations. Defaults to False.
     """
     if node_frame_dict is None:
         node_frame_dict = _compute_node_frame_dict(cand_graph)
     frames = sorted(node_frame_dict.keys())
-    ious = _get_iou_dict(segmentation)
+    ious = _get_iou_dict(segmentation, multiseg=multiseg)
     for frame in tqdm(frames):
         if frame + 1 not in node_frame_dict.keys():
             continue

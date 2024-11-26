@@ -2,16 +2,20 @@ from collections import Counter
 
 import numpy as np
 import pytest
-from motile_toolbox.candidate_graph import EdgeAttr, get_candidate_graph
+from motile_toolbox.candidate_graph import (
+    EdgeAttr,
+    compute_graph_from_multiseg,
+    compute_graph_from_seg,
+)
 from motile_toolbox.candidate_graph.compute_graph import (
-    get_candidate_graph_from_points_list,
+    compute_graph_from_points_list,
 )
 from motile_toolbox.candidate_graph.graph_attributes import NodeAttr
 
 
 def test_graph_from_segmentation_2d(segmentation_2d, graph_2d):
     # test with 2D segmentation
-    cand_graph, _ = get_candidate_graph(
+    cand_graph = compute_graph_from_seg(
         segmentation=segmentation_2d,
         max_edge_distance=100,
         iou=True,
@@ -28,7 +32,7 @@ def test_graph_from_segmentation_2d(segmentation_2d, graph_2d):
         )
 
     # lower edge distance
-    cand_graph, _ = get_candidate_graph(
+    cand_graph = compute_graph_from_seg(
         segmentation=segmentation_2d,
         max_edge_distance=15,
     )
@@ -38,7 +42,7 @@ def test_graph_from_segmentation_2d(segmentation_2d, graph_2d):
 
 def test_graph_from_segmentation_3d(segmentation_3d, graph_3d):
     # test with 3D segmentation
-    cand_graph, _ = get_candidate_graph(
+    cand_graph = compute_graph_from_seg(
         segmentation=segmentation_3d,
         max_edge_distance=100,
     )
@@ -54,8 +58,8 @@ def test_graph_from_multi_segmentation_2d(
     multi_hypothesis_segmentation_2d, multi_hypothesis_graph_2d
 ):
     # test with 2D segmentation
-    cand_graph, conflict_set = get_candidate_graph(
-        segmentation=multi_hypothesis_segmentation_2d,
+    cand_graph, conflict_set = compute_graph_from_multiseg(
+        segmentations=multi_hypothesis_segmentation_2d,
         max_edge_distance=100,
         iou=True,
     )
@@ -77,8 +81,8 @@ def test_graph_from_multi_segmentation_2d(
     # TODO: Test conflict set
 
     # lower edge distance
-    cand_graph, _ = get_candidate_graph(
-        segmentation=multi_hypothesis_segmentation_2d,
+    cand_graph, _ = compute_graph_from_multiseg(
+        segmentations=multi_hypothesis_segmentation_2d,
         max_edge_distance=14,
     )
     assert Counter(list(cand_graph.nodes)) == Counter(
@@ -100,12 +104,12 @@ def test_graph_from_points_list():
             [2, 1, 1, 1],
         ]
     )
-    cand_graph = get_candidate_graph_from_points_list(points_list, max_edge_distance=3)
+    cand_graph = compute_graph_from_points_list(points_list, max_edge_distance=3)
     assert cand_graph.number_of_edges() == 3
     assert len(cand_graph.in_edges(3)) == 0
 
     # test scale
-    cand_graph = get_candidate_graph_from_points_list(
+    cand_graph = compute_graph_from_points_list(
         points_list, max_edge_distance=3, scale=[1, 1, 1, 5]
     )
     assert cand_graph.number_of_edges() == 0

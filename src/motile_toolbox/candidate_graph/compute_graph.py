@@ -11,20 +11,19 @@ from .utils import add_cand_edges, nodes_from_points_list, nodes_from_segmentati
 logger = logging.getLogger(__name__)
 
 
-def get_candidate_graph(
+def compute_graph_from_seg(
     segmentation: np.ndarray,
     max_edge_distance: float,
     iou: bool = False,
     scale: list[float] | None = None,
-) -> tuple[nx.DiGraph, list[set[Any]] | None]:
+) -> nx.DiGraph:
     """Construct a candidate graph from a segmentation array. Nodes are placed at the
     centroid of each segmentation and edges are added for all nodes in adjacent frames
-    within max_edge_distance. If segmentation contains multiple hypotheses, will also
-    return a list of conflicting node ids that cannot be selected together.
+    within max_edge_distance.
 
     Args:
         segmentation (np.ndarray): A numpy array with integer labels and dimensions
-            (t, h, [z], y, x), where h is the number of hypotheses.
+            (t, [z], y, x).
         max_edge_distance (float): Maximum distance that objects can travel between
             frames. All nodes with centroids within this distance in adjacent frames
             will by connected with a candidate edge.
@@ -35,11 +34,8 @@ def get_candidate_graph(
             Defaults to None, which implies the data is isotropic.
 
     Returns:
-        tuple[nx.DiGraph, list[set[Any]] | None]: A candidate graph that can be passed
-        to the motile solver, and a list of conflicting node ids.
+        nx.DiGraph: A candidate graph that can be passed to the motile solver
     """
-    num_hypotheses = segmentation.shape[1]
-
     # add nodes
     cand_graph, node_frame_dict = nodes_from_segmentation(segmentation, scale=scale)
     logger.info(f"Candidate nodes: {cand_graph.number_of_nodes()}")
@@ -57,16 +53,73 @@ def get_candidate_graph(
 
     logger.info(f"Candidate edges: {cand_graph.number_of_edges()}")
 
+    return cand_graph
+
+
+def compute_graph_from_multiseg(
+    segmentations: np.ndarray,
+    max_edge_distance: float,
+    iou: bool = False,
+    scale: list[float] | None = None,
+) -> tuple[nx.DiGraph, list[set[Any]]]:
+    """Construct a candidate graph from a segmentation array. Nodes are placed at the
+    centroid of each segmentation and edges are added for all nodes in adjacent frames
+    within max_edge_distance.
+
+    Args:
+        segmentations (np.ndarray): numpy array with mupliple possible segmentations
+            stacked. Each segmentation has integer labels and
+            dimensions (h, t, [z], y, x). Assumes unique labels even between hypotheses.
+        max_edge_distance (float): Maximum distance that objects can travel between
+            frames. All nodes with centroids within this distance in adjacent frames
+            will by connected with a candidate edge.
+        iou (bool, optional): Whether to include IOU on the candidate graph.
+            Defaults to False.
+        scale (list[float] | None, optional): The scale of the segmentation data.
+            Will be used to rescale the point locations and attribute computations.
+            Defaults to None, which implies the data is isotropic.
+
+    Returns:
+        tuple[nx.DiGraph, list[set[Any]]: A candidate graph that can be passed to the
+            motile solver, and a list of conflicting node sets
+    """
+    # add nodes
+    cand_graph = nx.DiGraph()
+    node_frame_dict: dict[int, Any] = {}
+    for hypo_id, seg in enumerate(segmentations):
+        seg_node_graph, seg_node_frame_dict = nodes_from_segmentation(
+            seg, scale=scale, seg_hypo=hypo_id
+        )
+        cand_graph.update(seg_node_graph)
+        for frame, nodes in seg_node_frame_dict.items():
+            if frame not in node_frame_dict:
+                node_frame_dict[frame] = []
+            node_frame_dict[frame].extend(nodes)
+    logger.info(f"Candidate nodes: {cand_graph.number_of_nodes()}")
+
+    # add edges
+    add_cand_edges(
+        cand_graph,
+        max_edge_distance=max_edge_distance,
+        node_frame_dict=node_frame_dict,
+    )
+    if iou:
+        # Scale does not matter to IOU, because both numerator and denominator
+        # are scaled by the anisotropy.
+        add_iou(cand_graph, segmentations, node_frame_dict, multiseg=True)
+
+    logger.info(f"Candidate edges: {cand_graph.number_of_edges()}")
+
     # Compute conflict sets between segmentations
     conflicts = []
-    if num_hypotheses > 1:
-        for time, segs in enumerate(segmentation):
-            conflicts.extend(compute_conflict_sets(segs, time))
+    for time in range(segmentations.shape[1]):
+        segs = segmentations[:, time]
+        conflicts.extend(compute_conflict_sets(segs, time))
 
     return cand_graph, conflicts
 
 
-def get_candidate_graph_from_points_list(
+def compute_graph_from_points_list(
     points_list: np.ndarray,
     max_edge_distance: float,
     scale: list[float] | None = None,
@@ -86,7 +139,6 @@ def get_candidate_graph_from_points_list(
 
     Returns:
         nx.DiGraph: A candidate graph that can be passed to the motile solver.
-        Multiple hypotheses not supported for points input.
     """
     # add nodes
     cand_graph, node_frame_dict = nodes_from_points_list(points_list, scale=scale)
