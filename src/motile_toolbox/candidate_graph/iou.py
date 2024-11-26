@@ -75,7 +75,6 @@ def _get_iou_dict(segmentation, multiseg=False) -> dict[str, dict[str, float]]:
             seg1 = segmentation[hypo1][frame]
             seg2 = segmentation[hypo2][frame + 1]
             ious = _compute_ious(seg1, seg2)
-            print(hypo1, hypo2, ious)
             for label1, label2, iou in ious:
                 if multiseg:
                     node_id1 = get_node_id(frame, label1, hypo1)
