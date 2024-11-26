@@ -1,4 +1,8 @@
-from .compute_graph import get_candidate_graph, get_candidate_graph_from_points_list
+from .compute_graph import (
+    compute_graph_from_multiseg,
+    compute_graph_from_points_list,
+    compute_graph_from_seg,
+)
 from .graph_attributes import EdgeAttr, NodeAttr
 from .graph_to_nx import graph_to_nx
 from .iou import add_iou

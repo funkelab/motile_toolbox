@@ -23,7 +23,7 @@ def segmentation_2d():
     rr, cc = disk(center=(60, 45), radius=15, shape=frame_shape)
     segmentation[1][rr, cc] = 2
 
-    return np.expand_dims(segmentation, 1)
+    return segmentation
 
 
 @pytest.fixture
@@ -33,7 +33,7 @@ def multi_hypothesis_segmentation_2d():
 
     """
     frame_shape = (100, 100)
-    total_shape = (2, 2, *frame_shape)  # 2 time points, 2 hypotheses layers, H, W
+    total_shape = (2, 2, *frame_shape)  # 2 hypotheses, 2 time points, H, W
     segmentation = np.zeros(total_shape, dtype="int32")
     # make frame with one cell in center with label 1 (hypo 1)
     rr0, cc0 = disk(center=(50, 50), radius=20, shape=frame_shape)
@@ -41,21 +41,21 @@ def multi_hypothesis_segmentation_2d():
     rr1, cc1 = disk(center=(45, 45), radius=15, shape=frame_shape)
 
     segmentation[0, 0][rr0, cc0] = 1
-    segmentation[0, 1][rr1, cc1] = 1
+    segmentation[1, 0][rr1, cc1] = 1
 
     # make frame with two cells
     # first cell centered at (20, 80) with label 1
     rr0, cc0 = disk(center=(20, 80), radius=10, shape=frame_shape)
     rr1, cc1 = disk(center=(15, 75), radius=15, shape=frame_shape)
 
-    segmentation[1, 0][rr0, cc0] = 1
+    segmentation[0, 1][rr0, cc0] = 1
     segmentation[1, 1][rr1, cc1] = 1
 
     # second cell centered at (60, 45) with label 2
     rr0, cc0 = disk(center=(60, 45), radius=15, shape=frame_shape)
     rr1, cc1 = disk(center=(55, 40), radius=20, shape=frame_shape)
 
-    segmentation[1, 0][rr0, cc0] = 2
+    segmentation[0, 1][rr0, cc0] = 2
     segmentation[1, 1][rr1, cc1] = 2
 
     return segmentation
@@ -220,7 +220,7 @@ def segmentation_3d():
     mask = sphere(center=(60, 50, 45), radius=15, shape=frame_shape)
     segmentation[1][mask] = 2
 
-    return np.expand_dims(segmentation, 1)
+    return segmentation
 
 
 @pytest.fixture
@@ -235,20 +235,21 @@ def multi_hypothesis_segmentation_3d():
     # make first frame with one cell in center with label 1
     mask = sphere(center=(50, 50, 50), radius=20, shape=frame_shape)
     segmentation[0, 0][mask] = 1
+
+    # make second hypothesis first frame with one cell in center with label 1
     mask = sphere(center=(45, 50, 55), radius=20, shape=frame_shape)
-    segmentation[0, 1][mask] = 1
+    segmentation[1, 0][mask] = 1
 
     # make second frame, first hypothesis with two cells
     # first cell centered at (20, 50, 80) with label 1
     # second cell centered at (60, 50, 45) with label 2
     mask = sphere(center=(20, 50, 80), radius=10, shape=frame_shape)
-    segmentation[1, 0][mask] = 1
+    segmentation[0, 1][mask] = 1
     mask = sphere(center=(60, 50, 45), radius=15, shape=frame_shape)
-    segmentation[1, 0][mask] = 2
+    segmentation[0, 1][mask] = 2
 
     # make second frame, second hypothesis with one cell
     # first cell centered at (15, 50, 70) with label 1
-    # second cell centered at (55, 55, 45) with label 2
     mask = sphere(center=(15, 50, 70), radius=10, shape=frame_shape)
     segmentation[1, 1][mask] = 1
 
