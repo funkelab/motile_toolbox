@@ -53,10 +53,10 @@ def nodes_from_segmentation(
     Args:
         segmentation (np.ndarray): A numpy array with integer labels and dimensions
             (t, [z], y, x).
-        scale (list[float] | None, optional): The scale of the segmentation data.
+        scale (list[float] | None, optional): The scale of the segmentation data in all
+            dimensions (including time, which should have a dummy 1 value).
             Will be used to rescale the point locations and attribute computations.
-            Defaults to None, which implies the data is isotropic. Should include
-            time and all spatial dimentsions.
+            Defaults to None, which implies the data is isotropic.
         seg_hypo (int | None): A number to be stored in NodeAttr.SEG_HYPO, if given.
 
     Returns:
@@ -111,9 +111,9 @@ def nodes_from_points_list(
         points_list (np.ndarray): An NxD numpy array with N points and D
             (3 or 4) dimensions. Dimensions should be in order (t, [z], y, x).
         scale (list[float] | None, optional): Amount to scale the points in each
-            dimension. Only needed if the provided points are in "voxel" coordinates
-            instead of world coordinates. Defaults to None, which implies the data is
-            isotropic.
+            dimension (including time). Only needed if the provided points are in
+            "voxel" coordinates instead of world coordinates. Defaults to None, which
+            implies the data is isotropic.
 
     Returns:
         tuple[nx.DiGraph, dict[int, list[Any]]]: A candidate graph with only nodes,
