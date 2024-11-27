@@ -54,7 +54,6 @@ def ensure_unique_labels(
             multiple hypotheses in the first dimension. Defaults to False.
     """
     segmentation = segmentation.astype(np.uint64)
-    print(np.unique(segmentation[1], return_counts=True))
     orig_shape = segmentation.shape
     if multiseg:
         segmentation = segmentation.reshape((-1, *orig_shape[2:]))
@@ -66,6 +65,4 @@ def ensure_unique_labels(
         segmentation[idx] = frame
     if multiseg:
         segmentation = segmentation.reshape(orig_shape)
-    print(np.unique(segmentation[1], return_counts=True))
-    print(np.unique(segmentation[1], return_counts=True))
     return segmentation
