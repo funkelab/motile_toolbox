@@ -6,4 +6,4 @@ from .compute_graph import (
 from .graph_attributes import EdgeAttr, NodeAttr
 from .graph_to_nx import graph_to_nx
 from .iou import add_iou
-from .utils import add_cand_edges, get_node_id, nodes_from_segmentation
+from .utils import add_cand_edges, nodes_from_segmentation

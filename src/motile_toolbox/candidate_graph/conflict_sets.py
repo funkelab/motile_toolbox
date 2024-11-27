@@ -2,12 +2,8 @@ from itertools import combinations
 
 import numpy as np
 
-from .utils import (
-    get_node_id,
-)
 
-
-def compute_conflict_sets(segmentation_frame: np.ndarray, time: int) -> list[set]:
+def compute_conflict_sets(segmentation_frame: np.ndarray) -> list[set]:
     """Compute all sets of node ids that conflict with each other.
     Note: Results might include redundant sets, for example {a, b, c} and {a, b}
     might both appear in the results.
@@ -36,9 +32,6 @@ def compute_conflict_sets(segmentation_frame: np.ndarray, time: int) -> list[set
     values = np.transpose(values)
     conflict_sets = []
     for conflicting_labels in values:
-        id_set = set()
-        for hypo_id, label in enumerate(conflicting_labels):
-            if label != 0:
-                id_set.add(get_node_id(time, label, hypo_id))
+        id_set = {label for label in conflicting_labels if label != 0}
         conflict_sets.append(id_set)
     return conflict_sets

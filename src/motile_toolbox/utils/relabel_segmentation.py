@@ -4,7 +4,7 @@ import numpy as np
 from motile_toolbox.candidate_graph import NodeAttr
 
 
-def relabel_segmentation(
+def relabel_segmentation_with_track_id(
     solution_nx_graph: nx.DiGraph,
     segmentation: np.ndarray,
 ) -> np.ndarray:
@@ -37,3 +37,32 @@ def relabel_segmentation(
             tracked_masks[time_frame][previous_seg_mask] = id_counter
         id_counter += 1
     return tracked_masks
+
+
+def ensure_unique_labels(
+    segmentation: np.ndarray,
+    multiseg: bool = False,
+) -> np.ndarray:
+    """Relabels the segmentation in place to ensure that label ids are unique across
+    time. This means that every detection will have a unique label id.
+    Useful for combining predictions made in each frame independently, or multiple
+    segmentation outputs that repeat label IDs.
+
+    Args:
+        segmentation (np.ndarray): Segmentation with dimensions ([h], t, [z], y, x).
+        multiseg (bool, optional): Flag indicating if the segmentation contains
+            multiple hypotheses in the first dimension. Defaults to False.
+    """
+    segmentation = segmentation.astype(np.uint64)
+    orig_shape = segmentation.shape
+    if multiseg:
+        segmentation = segmentation.reshape((-1, *orig_shape[2:]))
+    curr_max = 0
+    for idx in range(segmentation.shape[0]):
+        frame = segmentation[idx]
+        frame[frame != 0] += curr_max
+        curr_max = int(np.max(frame))
+        segmentation[idx] = frame
+    if multiseg:
+        segmentation = segmentation.reshape(orig_shape)
+    return segmentation

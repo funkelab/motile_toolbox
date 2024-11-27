@@ -114,7 +114,7 @@ def compute_graph_from_multiseg(
     conflicts = []
     for time in range(segmentations.shape[1]):
         segs = segmentations[:, time]
-        conflicts.extend(compute_conflict_sets(segs, time))
+        conflicts.extend(compute_conflict_sets(segs))
 
     return cand_graph, conflicts
 

@@ -5,7 +5,6 @@ import numpy as np
 from motile_toolbox.candidate_graph import (
     NodeAttr,
     add_cand_edges,
-    get_node_id,
     nodes_from_segmentation,
 )
 from motile_toolbox.candidate_graph.utils import (
@@ -29,27 +28,27 @@ def test_nodes_from_segmentation_2d(segmentation_2d):
     node_graph, node_frame_dict = nodes_from_segmentation(
         segmentation=segmentation_2d,
     )
-    assert Counter(list(node_graph.nodes)) == Counter(["0_1", "1_1", "1_2"])
-    assert node_graph.nodes["1_1"][NodeAttr.SEG_ID.value] == 1
-    assert node_graph.nodes["1_1"][NodeAttr.TIME.value] == 1
-    assert node_graph.nodes["1_1"][NodeAttr.AREA.value] == 305
-    assert node_graph.nodes["1_1"][NodeAttr.POS.value] == (20, 80)
+    assert Counter(list(node_graph.nodes)) == Counter([1, 2, 3])
+    assert node_graph.nodes[2][NodeAttr.SEG_ID.value] == 2
+    assert node_graph.nodes[2][NodeAttr.TIME.value] == 1
+    assert node_graph.nodes[2][NodeAttr.AREA.value] == 305
+    assert node_graph.nodes[2][NodeAttr.POS.value] == (20, 80)
 
-    assert node_frame_dict[0] == ["0_1"]
-    assert Counter(node_frame_dict[1]) == Counter(["1_1", "1_2"])
+    assert node_frame_dict[0] == [1]
+    assert Counter(node_frame_dict[1]) == Counter([2, 3])
 
     # test with scaling
     node_graph, node_frame_dict = nodes_from_segmentation(
         segmentation=segmentation_2d, scale=[1, 1, 2]
     )
-    assert Counter(list(node_graph.nodes)) == Counter(["0_1", "1_1", "1_2"])
-    assert node_graph.nodes["1_1"][NodeAttr.SEG_ID.value] == 1
-    assert node_graph.nodes["1_1"][NodeAttr.TIME.value] == 1
-    assert node_graph.nodes["1_1"][NodeAttr.AREA.value] == 610
-    assert node_graph.nodes["1_1"][NodeAttr.POS.value] == (20, 160)
+    assert Counter(list(node_graph.nodes)) == Counter([1, 2, 3])
+    assert node_graph.nodes[2][NodeAttr.SEG_ID.value] == 2
+    assert node_graph.nodes[2][NodeAttr.TIME.value] == 1
+    assert node_graph.nodes[2][NodeAttr.AREA.value] == 610
+    assert node_graph.nodes[2][NodeAttr.POS.value] == (20, 160)
 
-    assert node_frame_dict[0] == ["0_1"]
-    assert Counter(node_frame_dict[1]) == Counter(["1_1", "1_2"])
+    assert node_frame_dict[0] == [1]
+    assert Counter(node_frame_dict[1]) == Counter([2, 3])
 
 
 def test_nodes_from_segmentation_3d(segmentation_3d):
@@ -57,27 +56,27 @@ def test_nodes_from_segmentation_3d(segmentation_3d):
     node_graph, node_frame_dict = nodes_from_segmentation(
         segmentation=segmentation_3d,
     )
-    assert Counter(list(node_graph.nodes)) == Counter(["0_1", "1_1", "1_2"])
-    assert node_graph.nodes["1_1"][NodeAttr.SEG_ID.value] == 1
-    assert node_graph.nodes["1_1"][NodeAttr.TIME.value] == 1
-    assert node_graph.nodes["1_1"][NodeAttr.AREA.value] == 4169
-    assert node_graph.nodes["1_1"][NodeAttr.POS.value] == (20, 50, 80)
+    assert Counter(list(node_graph.nodes)) == Counter([1, 2, 3])
+    assert node_graph.nodes[2][NodeAttr.SEG_ID.value] == 2
+    assert node_graph.nodes[2][NodeAttr.TIME.value] == 1
+    assert node_graph.nodes[2][NodeAttr.AREA.value] == 4169
+    assert node_graph.nodes[2][NodeAttr.POS.value] == (20, 50, 80)
 
-    assert node_frame_dict[0] == ["0_1"]
-    assert Counter(node_frame_dict[1]) == Counter(["1_1", "1_2"])
+    assert node_frame_dict[0] == [1]
+    assert Counter(node_frame_dict[1]) == Counter([2, 3])
 
     # test with scaling
     node_graph, node_frame_dict = nodes_from_segmentation(
         segmentation=segmentation_3d, scale=[1, 1, 4.5, 1]
     )
-    assert Counter(list(node_graph.nodes)) == Counter(["0_1", "1_1", "1_2"])
-    assert node_graph.nodes["1_1"][NodeAttr.SEG_ID.value] == 1
-    assert node_graph.nodes["1_1"][NodeAttr.AREA.value] == 4169 * 4.5
-    assert node_graph.nodes["1_1"][NodeAttr.TIME.value] == 1
-    assert node_graph.nodes["1_1"][NodeAttr.POS.value] == (20.0, 225.0, 80.0)
+    assert Counter(list(node_graph.nodes)) == Counter([1, 2, 3])
+    assert node_graph.nodes[2][NodeAttr.SEG_ID.value] == 2
+    assert node_graph.nodes[2][NodeAttr.AREA.value] == 4169 * 4.5
+    assert node_graph.nodes[2][NodeAttr.TIME.value] == 1
+    assert node_graph.nodes[2][NodeAttr.POS.value] == (20.0, 225.0, 80.0)
 
-    assert node_frame_dict[0] == ["0_1"]
-    assert Counter(node_frame_dict[1]) == Counter(["1_1", "1_2"])
+    assert node_frame_dict[0] == [1]
+    assert Counter(node_frame_dict[1]) == Counter([2, 3])
 
 
 # add_cand_edges
@@ -90,21 +89,17 @@ def test_add_cand_edges_2d(graph_2d):
 def test_add_cand_edges_3d(graph_3d):
     cand_graph = nx.create_empty_copy(graph_3d)
     add_cand_edges(cand_graph, max_edge_distance=15)
-    graph_3d.remove_edge("0_1", "1_1")
+    graph_3d.remove_edge(1, 2)
     assert Counter(list(cand_graph.edges)) == Counter(list(graph_3d.edges))
-
-
-def test_get_node_id():
-    assert get_node_id(0, 2) == "0_2"
 
 
 def test_compute_node_frame_dict(graph_2d):
     node_frame_dict = _compute_node_frame_dict(graph_2d)
     expected = {
         0: [
-            "0_1",
+            1,
         ],
-        1: ["1_1", "1_2"],
+        1: [2, 3],
     }
     assert node_frame_dict == expected
 

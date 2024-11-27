@@ -1,12 +1,11 @@
 from itertools import product
-from typing import Any
 
 import networkx as nx
 import numpy as np
 from tqdm import tqdm
 
 from .graph_attributes import EdgeAttr
-from .utils import _compute_node_frame_dict, get_node_id
+from .utils import _compute_node_frame_dict
 
 
 def _compute_ious(
@@ -45,7 +44,7 @@ def _compute_ious(
     return ious
 
 
-def _get_iou_dict(segmentation, multiseg=False) -> dict[str, dict[str, float]]:
+def _get_iou_dict(segmentation, multiseg=False) -> dict[int, dict[int, float]]:
     """Get all ious values for the provided segmentations (all frames).
     Will return as map from node_id -> dict[node_id] -> iou for easy
     navigation when adding to candidate graph.
@@ -58,10 +57,10 @@ def _get_iou_dict(segmentation, multiseg=False) -> dict[str, dict[str, float]]:
             multiple hypothesis segmentations. Defaults to False.
 
     Returns:
-        dict[str, dict[str, float]]: A map from node id to another dictionary, which
+        dict[int, dict[int, float]]: A map from node id to another dictionary, which
             contains node_ids to iou values.
     """
-    iou_dict: dict[str, dict[str, float]] = {}
+    iou_dict: dict[int, dict[int, float]] = {}
     hypo_pairs: list[tuple[int, ...]] = [(0, 0)]
     if multiseg:
         num_hypotheses = segmentation.shape[0]
@@ -76,23 +75,16 @@ def _get_iou_dict(segmentation, multiseg=False) -> dict[str, dict[str, float]]:
             seg2 = segmentation[hypo2][frame + 1]
             ious = _compute_ious(seg1, seg2)
             for label1, label2, iou in ious:
-                if multiseg:
-                    node_id1 = get_node_id(frame, label1, hypo1)
-                    node_id2 = get_node_id(frame + 1, label2, hypo2)
-                else:
-                    node_id1 = get_node_id(frame, label1)
-                    node_id2 = get_node_id(frame + 1, label2)
-
-                if node_id1 not in iou_dict:
-                    iou_dict[node_id1] = {}
-                iou_dict[node_id1][node_id2] = iou
+                if label1 not in iou_dict:
+                    iou_dict[label1] = {}
+                iou_dict[label1][label2] = iou
     return iou_dict
 
 
 def add_iou(
     cand_graph: nx.DiGraph,
     segmentation: np.ndarray,
-    node_frame_dict: dict[int, list[Any]] | None = None,
+    node_frame_dict: dict[int, list[int]] | None = None,
     multiseg=False,
 ) -> None:
     """Add IOU to the candidate graph.
