@@ -17,7 +17,7 @@ authors = [
 ]
 dynamic = ["version"]
 dependencies = [
-  "motile",
+  "motile>=0.3.0",
   "networkx",
   "numpy",
   "matplotlib",
