@@ -25,6 +25,7 @@ dependencies = [
   "tqdm",
   "zarr",
   "plotly",
+  "scipy",
 ]
 
 [project.optional-dependencies]
