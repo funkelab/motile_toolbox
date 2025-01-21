@@ -5,6 +5,7 @@ from typing import Any
 import networkx as nx
 import numpy as np
 from scipy.spatial import KDTree
+import dask.array as da
 
 from tqdm import tqdm
 
@@ -95,7 +96,10 @@ def nodes_from_segmentation(
         segs = segmentation[t]
         nodes_in_frame = []
         if intensity_image is not None: 
-            props = regionprops_extended(segs, spacing=tuple(scale[1:]), intensity_image=intensity_image[t])
+            if isinstance(intensity_image, da.core.Array):
+                props = regionprops_extended(segs, spacing=tuple(scale[1:]), intensity_image=intensity_image[t].compute())
+            else:  
+                props = regionprops_extended(segs, spacing=tuple(scale[1:]), intensity_image=intensity_image[t])
         else:
             props = regionprops_extended(segs, spacing=tuple(scale[1:]))
         for regionprop in props:
