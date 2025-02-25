@@ -2,7 +2,6 @@ import logging
 from collections.abc import Iterable
 from typing import Any
 
-import dask.array as da
 import networkx as nx
 import numpy as np
 from scipy.spatial import KDTree
@@ -109,16 +108,9 @@ def nodes_from_segmentation(
         segs = segmentation[t]
         nodes_in_frame = []
         if intensity_image is not None:
-            if isinstance(intensity_image, da.core.Array):
-                props = regionprops_extended(
-                    segs,
-                    spacing=tuple(scale[1:]),
-                    intensity_image=intensity_image[t].compute(),
-                )
-            else:
-                props = regionprops_extended(
-                    segs, spacing=tuple(scale[1:]), intensity_image=intensity_image[t]
-                )
+            props = regionprops_extended(
+                segs, spacing=tuple(scale[1:]), intensity_image=intensity_image[t]
+            )
         else:
             props = regionprops_extended(segs, spacing=tuple(scale[1:]))
         for regionprop in props:
