@@ -26,6 +26,7 @@ dependencies = [
   "zarr",
   "plotly",
   "scipy",
+  "dask_image",
 ]
 
 [project.optional-dependencies]
