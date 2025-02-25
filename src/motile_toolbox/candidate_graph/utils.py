@@ -1,4 +1,5 @@
 import logging
+import warnings
 from collections.abc import Iterable
 from typing import Any
 
@@ -7,7 +8,7 @@ import numpy as np
 from scipy.spatial import KDTree
 from tqdm import tqdm
 
-from .graph_attributes import NodeAttr
+from .graph_attributes import NodeAttr, NodeAttr2D, NodeAttr3D
 from .regionprops_extended import regionprops_extended
 
 logger = logging.getLogger(__name__)
@@ -17,7 +18,7 @@ def nodes_from_segmentation(  # noqa - ignoring too complex
     segmentation: np.ndarray,
     intensity_image: np.ndarray | None = None,
     scale: list[float] | None = None,
-    features: list[float] | None = None,
+    features: list[NodeAttr | NodeAttr2D | NodeAttr3D] | None = None,
     seg_hypo=None,
 ) -> tuple[nx.DiGraph, dict[int, list[Any]]]:
     """Extract candidate nodes from a segmentation. Returns a networkx graph
@@ -55,8 +56,8 @@ def nodes_from_segmentation(  # noqa - ignoring too complex
             dimensions (including time, which should have a dummy 1 value).
             Will be used to rescale the point locations and attribute computations.
             Defaults to None, which implies the data is isotropic.
-        features (list[str] | None, optional): A list of additional features to compute
-            for each node. Defaults to None.
+        features (list[NodeAttr | NodeAttr2D | NodeAttr3D] | None, optional): A list of
+            additional features to compute for each node. Defaults to None.
         seg_hypo (int | None): A number to be stored in NodeAttr.SEG_HYPO, if given.
 
     Returns:
@@ -68,6 +69,7 @@ def nodes_from_segmentation(  # noqa - ignoring too complex
     cand_graph = nx.DiGraph()
     # also construct a dictionary from time frame to node_id for efficiency
     node_frame_dict: dict[int, list[Any]] = {}
+    n_spatial_dim = segmentation.ndim - 1
 
     if scale is None:
         scale = [
@@ -78,35 +80,22 @@ def nodes_from_segmentation(  # noqa - ignoring too complex
             len(scale) == segmentation.ndim
         ), f"Scale {scale} should have {segmentation.ndim} dims"
 
-    features_2D = [
-        "pixel_count",
-        "area",
-        "intensity_mean",
-        "axes",
-        "perimeter",
-        "circularity",
-    ]
-    features_3D = [
-        "voxel_count",
-        "volume",
-        "intensity_mean",
-        "axes",
-        "surface_area",
-        "sphericity",
-    ]
-
-    shape = segmentation.shape
     if features is None:
         features = []
-    if len(shape) == 4:
-        features = [feature for feature in features if feature in features_3D]
-    if len(shape) == 3:
-        features = [feature for feature in features if feature in features_2D]
-        if "axes" in features:
-            features.remove("axes")
-            features.extend(["axis_major_length", "axis_minor_length"])
-    if intensity_image is None and "intensity_mean" in features:
-        features.remove("intensity_mean")
+    if n_spatial_dim == 2:
+        supported_attrs = NodeAttr2D
+    elif n_spatial_dim == 3:
+        supported_attrs = NodeAttr3D
+    for feature in features:
+        assert isinstance(feature, NodeAttr) or isinstance(feature, supported_attrs), (
+            f"Requested feature {feature} is not in supported sets "
+            f"{dir(NodeAttr)} or {dir(supported_attrs)}"
+        )
+    if intensity_image is None and NodeAttr.INTENSITY_MEAN in features:
+        warnings.warn(
+            "Intensity mean was requested but intensity image was not provided"
+        )
+        features.remove(NodeAttr.INTENSITY_MEAN)
 
     for t in tqdm(range(len(segmentation))):
         segs = segmentation[t]
@@ -122,15 +111,23 @@ def nodes_from_segmentation(  # noqa - ignoring too complex
             attrs = {NodeAttr.TIME.value: t}
             attrs[NodeAttr.SEG_ID.value] = regionprop.label
 
+            axis_features = [
+                NodeAttr.AXIS_MAJOR_LENGTH,
+                NodeAttr.AXIS_MINOR_LENGTH,
+                NodeAttr3D.AXIS_SEMI_MINOR_LENGTH,
+            ]
+
+            get_axes = any([axis_feat in features for axis_feat in axis_features])
+            if get_axes:
+                axes = regionprop["axes"]
+
             for feature in features:
-                if feature == "axes":
-                    (
-                        attrs["axis_major_length"],
-                        attrs["axis_semi_minor_length"],
-                        attrs["axis_minor_length"],
-                    ) = regionprop["axes"]
+                if feature in axis_features:
+                    idx = axis_features.index(feature)
+                    value = axes[idx]
                 else:
-                    attrs[feature] = regionprop[feature]
+                    value = regionprop[feature.value]
+                attrs[feature.value] = value
 
             if seg_hypo:
                 attrs[NodeAttr.SEG_HYPO.value] = seg_hypo

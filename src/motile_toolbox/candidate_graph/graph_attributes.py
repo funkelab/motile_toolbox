@@ -13,14 +13,20 @@ class NodeAttr(Enum):
     SEG_HYPO: str = "seg_hypo"
     TRACK_ID: str = "track_id"
 
-    AREA: str = "area"
     INTENSITY_MEAN: str = "intensity_mean"
     AXIS_MINOR_LENGTH: str = "axis_minor_length"
     AXIS_MAJOR_LENGTH: str = "axis_major_length"
-    AXIS_SEMI_MINOR_LENGTH: str = "axis_semi_minor_length"
-    PERIMETER: str = "perimeter"
+
+
+class NodeAttr2D(Enum):
+    AREA: str = "area"
     PIXEL_COUNT: str = "pixel_count"
+    PERIMETER: str = "perimeter"
     CIRCULARITY: str = "circularity"
+
+
+class NodeAttr3D(Enum):
+    AXIS_SEMI_MINOR_LENGTH: str = "axis_semi_minor_length"
     VOLUME: str = "volume"
     VOXEL_COUNT: str = "voxel_count"
     SURFACE_AREA: str = "surface_area"

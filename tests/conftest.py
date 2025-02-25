@@ -2,7 +2,12 @@ import motile
 import networkx as nx
 import numpy as np
 import pytest
-from motile_toolbox.candidate_graph.graph_attributes import EdgeAttr, NodeAttr
+from motile_toolbox.candidate_graph.graph_attributes import (
+    EdgeAttr,
+    NodeAttr,
+    NodeAttr2D,
+    NodeAttr3D,
+)
 from skimage.draw import disk
 
 
@@ -71,7 +76,7 @@ def graph_2d():
                 NodeAttr.POS.value: (50, 50),
                 NodeAttr.TIME.value: 0,
                 NodeAttr.SEG_ID.value: 1,
-                NodeAttr.AREA.value: 1245,
+                NodeAttr2D.AREA.value: 1245,
             },
         ),
         (
@@ -80,7 +85,7 @@ def graph_2d():
                 NodeAttr.POS.value: (20, 80),
                 NodeAttr.TIME.value: 1,
                 NodeAttr.SEG_ID.value: 2,
-                NodeAttr.AREA.value: 305,
+                NodeAttr2D.AREA.value: 305,
             },
         ),
         (
@@ -89,7 +94,7 @@ def graph_2d():
                 NodeAttr.POS.value: (60, 45),
                 NodeAttr.TIME.value: 1,
                 NodeAttr.SEG_ID.value: 3,
-                NodeAttr.AREA.value: 697,
+                NodeAttr2D.AREA.value: 697,
             },
         ),
     ]
@@ -113,7 +118,7 @@ def multi_hypothesis_graph_2d():
                 NodeAttr.TIME.value: 0,
                 NodeAttr.SEG_HYPO.value: 0,
                 NodeAttr.SEG_ID.value: 1,
-                NodeAttr.AREA.value: 1245,
+                NodeAttr2D.AREA.value: 1245,
             },
         ),
         (
@@ -123,7 +128,7 @@ def multi_hypothesis_graph_2d():
                 NodeAttr.TIME.value: 0,
                 NodeAttr.SEG_HYPO.value: 1,
                 NodeAttr.SEG_ID.value: 2,
-                NodeAttr.AREA.value: 697,
+                NodeAttr2D.AREA.value: 697,
             },
         ),
         (
@@ -133,7 +138,7 @@ def multi_hypothesis_graph_2d():
                 NodeAttr.TIME.value: 1,
                 NodeAttr.SEG_HYPO.value: 0,
                 NodeAttr.SEG_ID.value: 3,
-                NodeAttr.AREA.value: 305,
+                NodeAttr2D.AREA.value: 305,
             },
         ),
         (
@@ -143,7 +148,7 @@ def multi_hypothesis_graph_2d():
                 NodeAttr.TIME.value: 1,
                 NodeAttr.SEG_HYPO.value: 1,
                 NodeAttr.SEG_ID.value: 4,
-                NodeAttr.AREA.value: 697,
+                NodeAttr2D.AREA.value: 697,
             },
         ),
         (
@@ -153,7 +158,7 @@ def multi_hypothesis_graph_2d():
                 NodeAttr.TIME.value: 1,
                 NodeAttr.SEG_HYPO.value: 0,
                 NodeAttr.SEG_ID.value: 5,
-                NodeAttr.AREA.value: 697,
+                NodeAttr2D.AREA.value: 697,
             },
         ),
         (
@@ -163,7 +168,7 @@ def multi_hypothesis_graph_2d():
                 NodeAttr.TIME.value: 1,
                 NodeAttr.SEG_HYPO.value: 1,
                 NodeAttr.SEG_ID.value: 6,
-                NodeAttr.AREA.value: 1245,
+                NodeAttr2D.AREA.value: 1245,
             },
         ),
     ]
@@ -266,7 +271,7 @@ def graph_3d():
                 NodeAttr.POS.value: (50, 50, 50),
                 NodeAttr.TIME.value: 0,
                 NodeAttr.SEG_ID.value: 1,
-                NodeAttr.VOLUME.value: 33401,
+                NodeAttr3D.VOLUME.value: 33401,
             },
         ),
         (
@@ -275,7 +280,7 @@ def graph_3d():
                 NodeAttr.POS.value: (20, 50, 80),
                 NodeAttr.TIME.value: 1,
                 NodeAttr.SEG_ID.value: 2,
-                NodeAttr.VOLUME.value: 4169,
+                NodeAttr3D.VOLUME.value: 4169,
             },
         ),
         (
@@ -284,7 +289,7 @@ def graph_3d():
                 NodeAttr.POS.value: (60, 50, 45),
                 NodeAttr.TIME.value: 1,
                 NodeAttr.SEG_ID.value: 3,
-                NodeAttr.VOLUME.value: 14147,
+                NodeAttr3D.VOLUME.value: 14147,
             },
         ),
     ]
