@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, Mapping, overload
+from collections.abc import Callable, Mapping
+from typing import TYPE_CHECKING, Any, overload
 
 import numpy as np
 

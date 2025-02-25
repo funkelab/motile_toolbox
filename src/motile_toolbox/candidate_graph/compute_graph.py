@@ -5,6 +5,7 @@ import networkx as nx
 import numpy as np
 
 from .conflict_sets import compute_conflict_sets
+from .graph_attributes import NodeAttr, NodeAttr2D, NodeAttr3D
 from .iou import add_iou
 from .utils import add_cand_edges, nodes_from_points_list, nodes_from_segmentation
 
@@ -15,7 +16,9 @@ def compute_graph_from_seg(
     segmentation: np.ndarray,
     max_edge_distance: float,
     iou: bool = False,
+    intensity_image: np.ndarray | None = None,
     scale: list[float] | None = None,
+    features: list[NodeAttr | NodeAttr2D | NodeAttr3D] | None = None,
 ) -> nx.DiGraph:
     """Construct a candidate graph from a segmentation array. Nodes are placed at the
     centroid of each segmentation and edges are added for all nodes in adjacent frames
@@ -29,15 +32,21 @@ def compute_graph_from_seg(
             will by connected with a candidate edge.
         iou (bool, optional): Whether to include IOU on the candidate graph.
             Defaults to False.
+        intensity_image (np.array, optional): the intensity image to be used if
+            intensity_mean is among the features to be measured.
         scale (list[float] | None, optional): The scale of the segmentation data.
             Will be used to rescale the point locations and attribute computations.
             Defaults to None, which implies the data is isotropic.
+        features (list[str] | None, optional): A list of features (regionprops) to
+            measure. Defaults to None.
 
     Returns:
         nx.DiGraph: A candidate graph that can be passed to the motile solver
     """
     # add nodes
-    cand_graph, node_frame_dict = nodes_from_segmentation(segmentation, scale=scale)
+    cand_graph, node_frame_dict = nodes_from_segmentation(
+        segmentation, intensity_image=intensity_image, scale=scale, features=features
+    )
     logger.info(f"Candidate nodes: {cand_graph.number_of_nodes()}")
 
     # add edges
@@ -87,8 +96,13 @@ def compute_graph_from_multiseg(
     cand_graph = nx.DiGraph()
     node_frame_dict: dict[int, Any] = {}
     for hypo_id, seg in enumerate(segmentations):
+        n_spatial_dim = seg.ndim - 1
+        features = [NodeAttr2D.AREA] if n_spatial_dim == 2 else [NodeAttr3D.VOLUME]
         seg_node_graph, seg_node_frame_dict = nodes_from_segmentation(
-            seg, scale=scale, seg_hypo=hypo_id
+            seg,
+            scale=scale,
+            seg_hypo=hypo_id,
+            features=features,
         )
         cand_graph.update(seg_node_graph)
         for frame, nodes in seg_node_frame_dict.items():

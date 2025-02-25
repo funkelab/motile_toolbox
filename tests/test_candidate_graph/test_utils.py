@@ -4,6 +4,8 @@ import networkx as nx
 import numpy as np
 from motile_toolbox.candidate_graph import (
     NodeAttr,
+    NodeAttr2D,
+    NodeAttr3D,
     add_cand_edges,
     nodes_from_segmentation,
 )
@@ -27,11 +29,12 @@ def test_nodes_from_segmentation_2d(segmentation_2d):
     # test with 2D segmentation
     node_graph, node_frame_dict = nodes_from_segmentation(
         segmentation=segmentation_2d,
+        features=[NodeAttr2D.AREA],
     )
     assert Counter(list(node_graph.nodes)) == Counter([1, 2, 3])
     assert node_graph.nodes[2][NodeAttr.SEG_ID.value] == 2
     assert node_graph.nodes[2][NodeAttr.TIME.value] == 1
-    assert node_graph.nodes[2][NodeAttr.AREA.value] == 305
+    assert node_graph.nodes[2][NodeAttr2D.AREA.value] == 305
     assert node_graph.nodes[2][NodeAttr.POS.value] == (20, 80)
 
     assert node_frame_dict[0] == [1]
@@ -39,12 +42,14 @@ def test_nodes_from_segmentation_2d(segmentation_2d):
 
     # test with scaling
     node_graph, node_frame_dict = nodes_from_segmentation(
-        segmentation=segmentation_2d, scale=[1, 1, 2]
+        segmentation=segmentation_2d,
+        scale=[1, 1, 2],
+        features=[NodeAttr2D.AREA],
     )
     assert Counter(list(node_graph.nodes)) == Counter([1, 2, 3])
     assert node_graph.nodes[2][NodeAttr.SEG_ID.value] == 2
     assert node_graph.nodes[2][NodeAttr.TIME.value] == 1
-    assert node_graph.nodes[2][NodeAttr.AREA.value] == 610
+    assert node_graph.nodes[2][NodeAttr2D.AREA.value] == 610
     assert node_graph.nodes[2][NodeAttr.POS.value] == (20, 160)
 
     assert node_frame_dict[0] == [1]
@@ -55,11 +60,12 @@ def test_nodes_from_segmentation_3d(segmentation_3d):
     # test with 3D segmentation
     node_graph, node_frame_dict = nodes_from_segmentation(
         segmentation=segmentation_3d,
+        features=[NodeAttr3D.VOLUME],
     )
     assert Counter(list(node_graph.nodes)) == Counter([1, 2, 3])
     assert node_graph.nodes[2][NodeAttr.SEG_ID.value] == 2
     assert node_graph.nodes[2][NodeAttr.TIME.value] == 1
-    assert node_graph.nodes[2][NodeAttr.AREA.value] == 4169
+    assert node_graph.nodes[2][NodeAttr3D.VOLUME.value] == 4169
     assert node_graph.nodes[2][NodeAttr.POS.value] == (20, 50, 80)
 
     assert node_frame_dict[0] == [1]
@@ -67,11 +73,13 @@ def test_nodes_from_segmentation_3d(segmentation_3d):
 
     # test with scaling
     node_graph, node_frame_dict = nodes_from_segmentation(
-        segmentation=segmentation_3d, scale=[1, 1, 4.5, 1]
+        segmentation=segmentation_3d,
+        scale=[1, 1, 4.5, 1],
+        features=[NodeAttr3D.VOLUME],
     )
     assert Counter(list(node_graph.nodes)) == Counter([1, 2, 3])
     assert node_graph.nodes[2][NodeAttr.SEG_ID.value] == 2
-    assert node_graph.nodes[2][NodeAttr.AREA.value] == 4169 * 4.5
+    assert node_graph.nodes[2][NodeAttr3D.VOLUME.value] == 4169 * 4.5
     assert node_graph.nodes[2][NodeAttr.TIME.value] == 1
     assert node_graph.nodes[2][NodeAttr.POS.value] == (20.0, 225.0, 80.0)
 

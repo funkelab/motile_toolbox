@@ -1,6 +1,7 @@
 import csv
 import logging
-from typing import Any, MutableMapping
+from collections.abc import MutableMapping
+from typing import Any
 
 import networkx as nx
 import numpy as np

@@ -1,21 +1,24 @@
 import logging
+import warnings
 from collections.abc import Iterable
 from typing import Any
 
 import networkx as nx
 import numpy as np
 from scipy.spatial import KDTree
-from skimage.measure import regionprops
 from tqdm import tqdm
 
-from .graph_attributes import NodeAttr
+from .graph_attributes import NodeAttr, NodeAttr2D, NodeAttr3D
+from .regionprops_extended import regionprops_extended
 
 logger = logging.getLogger(__name__)
 
 
-def nodes_from_segmentation(
+def nodes_from_segmentation(  # noqa - ignoring too complex
     segmentation: np.ndarray,
+    intensity_image: np.ndarray | None = None,
     scale: list[float] | None = None,
+    features: list[NodeAttr | NodeAttr2D | NodeAttr3D] | None = None,
     seg_hypo=None,
 ) -> tuple[nx.DiGraph, dict[int, list[Any]]]:
     """Extract candidate nodes from a segmentation. Returns a networkx graph
@@ -26,17 +29,35 @@ def nodes_from_segmentation(
         - time
         - position
         - segmentation id
-        - area
+        - additional measurement features, which may include:
+            [2D labels]
+            - pixel_count
+            - area
+            - intensity_mean
+            - axes (major, minor)
+            - perimeter
+            - circularity
+            [3D labels]
+            - voxel_count
+            - volume
+            - intensity_mean
+            - axes (major, semi-minor, minor)
+            - surface_area
+            - sphericity
 
     Args:
         segmentation (np.ndarray): A numpy array with integer labels and dimensions
             (t, [z], y, x). Labels must be unique across time, and the label
             will be used as the node id. If the labels are not unique, preprocess
             with motile_toolbox.utils.ensure_unqiue_ids before calling this function.
+        intensity_image (np.ndarray): A numpy array from which to compute the region
+            mean intensity measurements.
         scale (list[float] | None, optional): The scale of the segmentation data in all
             dimensions (including time, which should have a dummy 1 value).
             Will be used to rescale the point locations and attribute computations.
             Defaults to None, which implies the data is isotropic.
+        features (list[NodeAttr | NodeAttr2D | NodeAttr3D] | None, optional): A list of
+            additional features to compute for each node. Defaults to None.
         seg_hypo (int | None): A number to be stored in NodeAttr.SEG_HYPO, if given.
 
     Returns:
@@ -44,9 +65,11 @@ def nodes_from_segmentation(
             and a mapping from time frames to node ids.
     """
     logger.debug("Extracting nodes from segmentation")
+
     cand_graph = nx.DiGraph()
     # also construct a dictionary from time frame to node_id for efficiency
     node_frame_dict: dict[int, list[Any]] = {}
+    n_spatial_dim = segmentation.ndim - 1
 
     if scale is None:
         scale = [
@@ -57,14 +80,55 @@ def nodes_from_segmentation(
             len(scale) == segmentation.ndim
         ), f"Scale {scale} should have {segmentation.ndim} dims"
 
+    if features is None:
+        features = []
+    if n_spatial_dim == 2:
+        supported_attrs = NodeAttr2D
+    elif n_spatial_dim == 3:
+        supported_attrs = NodeAttr3D
+    for feature in features:
+        assert isinstance(feature, NodeAttr) or isinstance(feature, supported_attrs), (
+            f"Requested feature {feature} is not in supported sets "
+            f"{dir(NodeAttr)} or {dir(supported_attrs)}"
+        )
+    if intensity_image is None and NodeAttr.INTENSITY_MEAN in features:
+        warnings.warn(
+            "Intensity mean was requested but intensity image was not provided"
+        )
+        features.remove(NodeAttr.INTENSITY_MEAN)
+
     for t in tqdm(range(len(segmentation))):
         segs = segmentation[t]
         nodes_in_frame = []
-        props = regionprops(segs, spacing=tuple(scale[1:]))
+        if intensity_image is not None:
+            props = regionprops_extended(
+                segs, spacing=tuple(scale[1:]), intensity_image=intensity_image[t]
+            )
+        else:
+            props = regionprops_extended(segs, spacing=tuple(scale[1:]))
         for regionprop in props:
             node_id = regionprop.label
-            attrs = {NodeAttr.TIME.value: t, NodeAttr.AREA.value: regionprop.area}
+            attrs = {NodeAttr.TIME.value: t}
             attrs[NodeAttr.SEG_ID.value] = regionprop.label
+
+            axis_features = [
+                NodeAttr.AXIS_MAJOR_LENGTH,
+                NodeAttr.AXIS_MINOR_LENGTH,
+                NodeAttr3D.AXIS_SEMI_MINOR_LENGTH,
+            ]
+
+            get_axes = any([axis_feat in features for axis_feat in axis_features])
+            if get_axes:
+                axes = regionprop["axes"]
+
+            for feature in features:
+                if feature in axis_features:
+                    idx = axis_features.index(feature)
+                    value = axes[idx]
+                else:
+                    value = regionprop[feature.value]
+                attrs[feature.value] = value
+
             if seg_hypo:
                 attrs[NodeAttr.SEG_HYPO.value] = seg_hypo
             centroid = regionprop.centroid  # [z,] y, x
