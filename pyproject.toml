@@ -73,6 +73,7 @@ ignore = [
     "D105", # Missing docstring in magic method
     "D107", # Missing docstring in `__init__
     "D205", # 1 blank line required between summary and description
+    "D415", # first line of docstrings end in punctuation
     "S101", # Use of assert detected
 ]
 

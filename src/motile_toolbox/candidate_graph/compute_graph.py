@@ -17,7 +17,7 @@ def compute_graph_from_seg(
     iou: bool = False,
     intensity_image: np.ndarray | None = None,
     scale: list[float] | None = None,
-    features: list[str] | None = [],
+    features: list[str] | None = None,
 ) -> nx.DiGraph:
     """Construct a candidate graph from a segmentation array. Nodes are placed at the
     centroid of each segmentation and edges are added for all nodes in adjacent frames
@@ -31,11 +31,13 @@ def compute_graph_from_seg(
             will by connected with a candidate edge.
         iou (bool, optional): Whether to include IOU on the candidate graph.
             Defaults to False.
-        intensity_image (np.array, optional): the intensity image to be used if intensity_mean is among the features to be measured.
+        intensity_image (np.array, optional): the intensity image to be used if
+            intensity_mean is among the features to be measured.
         scale (list[float] | None, optional): The scale of the segmentation data.
             Will be used to rescale the point locations and attribute computations.
             Defaults to None, which implies the data is isotropic.
-        features (list[str] | None = []): A list of features (regionprops) to measure.
+        features (list[str] | None, optional): A list of features (regionprops) to
+            measure. Defaults to None.
 
     Returns:
         nx.DiGraph: A candidate graph that can be passed to the motile solver

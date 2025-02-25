@@ -8,14 +8,17 @@ from skimage.morphology import ball
 
 
 class ExtendedRegionProperties(RegionProperties):
-    """Adding additional properties to skimage.measure._regionprops following the logic from the porespy package with some modifications to include the spacing information."""
+    """Adding additional properties to skimage.measure._regionprops following the logic
+    from the porespy package with some modifications to include the spacing information.
+    """
 
     @property
     def axes(self):
         """Calculate the three axes radii"""
-        cell = np.where(
-            self._label_image == self.label
-        )  # np.where returns a tuple of all the indices in the different dimensions z,y,x that fulfill the condition. The indices in z are different than in y, but the length is the same.
+        # np.where returns a tuple of all the indices in the different dimensions z,y,x
+        # that fulfill the condition. The indices in z are different than in y,
+        # but the length is the same.
+        cell = np.where(self._label_image == self.label)
         voxel_count = self.voxel_count
 
         z, y, x = cell
@@ -25,20 +28,24 @@ class ExtendedRegionProperties(RegionProperties):
         y = (y - np.mean(y)) * self._spacing[1]
         x = (x - np.mean(x)) * self._spacing[2]
 
+        # Moments of inertia with respect to the x, y, z, axis.
         i_xx = np.sum(y**2 + z**2)
         i_yy = np.sum(x**2 + z**2)
-        i_zz = np.sum(
-            x**2 + y**2
-        )  # Moments of inertia with respect to the x, y, z, axis.
+        i_zz = np.sum(x**2 + y**2)
+        # Products of inertia. A measure of imbalance in the mass distribution.
         i_xy = np.sum(x * y)
         i_xz = np.sum(x * z)
-        i_yz = np.sum(
-            y * z
-        )  # Products of inertia. A measure of imbalance in the mass distribution.
+        i_yz = np.sum(y * z)
 
+        # Tensor of inertia. For calculating the Principal Axes of Inertia
+        # (eigvec & eigval).
         i = np.array(
-            [[i_xx, -i_xy, -i_xz], [-i_xy, i_yy, -i_yz], [-i_xz, -i_yz, i_zz]]
-        )  # Tensor of inertia. For calculating the Principal Axes of Inertia (eigvec & eigval).
+            [
+                [i_xx, -i_xy, -i_xz],
+                [-i_xy, i_yy, -i_yz],
+                [-i_xz, -i_yz, i_zz],
+            ]
+        )
         eig = np.linalg.eig(i)
 
         eigval = eig[0]
@@ -72,7 +79,8 @@ class ExtendedRegionProperties(RegionProperties):
             * (eigval[longaxis] + eigval[midaxis] - eigval[shortaxis])
             / voxel_count
         )
-        return (longr, midr, shortr)  # return calibrated three axis radii
+        # return calibrated three axis radii
+        return (longr, midr, shortr)
 
     @property
     def circularity(self):
@@ -122,10 +130,23 @@ class ExtendedRegionProperties(RegionProperties):
 
 
 def regionprops_extended(
-    img: np.ndarray, spacing: tuple[float], intensity_image: np.ndarray | None = None
+    seg: np.ndarray, spacing: tuple[float], intensity_image: np.ndarray | None = None
 ) -> list[ExtendedRegionProperties]:
-    """Create instance of ExtendedRegionProperties that extends skimage.measure.RegionProperties"""
-    results = regionprops(img, intensity_image=intensity_image, spacing=spacing)
+    """Create instance of ExtendedRegionProperties that extends
+    skimage.measure.RegionProperties
+
+    Args:
+        seg (np.ndarray): The segmentation array with unique label for each detection
+        spacing (tuple[float]): The pixel spacing information to pass to
+            ExtendedRegionProperties
+        intensity_image (np.ndarray | None, optional): The intensity image, for
+            computing intensity-based region properties. Defaults to None.
+
+    Returns:
+        list[ExtendedRegionProperties]: A list of properties, one for each label in
+            the segmentation array
+    """
+    results = regionprops(seg, intensity_image=intensity_image, spacing=spacing)
     for i, _ in enumerate(results):
         a = results[i]
         b = ExtendedRegionProperties(

@@ -13,11 +13,11 @@ from .regionprops_extended import regionprops_extended
 logger = logging.getLogger(__name__)
 
 
-def nodes_from_segmentation(
+def nodes_from_segmentation(  # noqa - ignoring too complex
     segmentation: np.ndarray,
     intensity_image: np.ndarray | None = None,
     scale: list[float] | None = None,
-    features: list[float] | None = [],
+    features: list[float] | None = None,
     seg_hypo=None,
 ) -> tuple[nx.DiGraph, dict[int, list[Any]]]:
     """Extract candidate nodes from a segmentation. Returns a networkx graph
@@ -49,12 +49,14 @@ def nodes_from_segmentation(
             (t, [z], y, x). Labels must be unique across time, and the label
             will be used as the node id. If the labels are not unique, preprocess
             with motile_toolbox.utils.ensure_unqiue_ids before calling this function.
-        intensity_image (np.ndarray): A numpy array from which to compute the region mean intensity measurements.
+        intensity_image (np.ndarray): A numpy array from which to compute the region
+            mean intensity measurements.
         scale (list[float] | None, optional): The scale of the segmentation data in all
             dimensions (including time, which should have a dummy 1 value).
             Will be used to rescale the point locations and attribute computations.
             Defaults to None, which implies the data is isotropic.
-        features: list[str] : A list of additional features to compute for each node.
+        features (list[str] | None, optional): A list of additional features to compute
+            for each node. Defaults to None.
         seg_hypo (int | None): A number to be stored in NodeAttr.SEG_HYPO, if given.
 
     Returns:
@@ -94,6 +96,8 @@ def nodes_from_segmentation(
     ]
 
     shape = segmentation.shape
+    if features is None:
+        features = []
     if len(shape) == 4:
         features = [feature for feature in features if feature in features_3D]
     if len(shape) == 3:
