@@ -2,11 +2,10 @@ import logging
 from collections.abc import Iterable
 from typing import Any
 
+import dask.array as da
 import networkx as nx
 import numpy as np
 from scipy.spatial import KDTree
-import dask.array as da
-
 from tqdm import tqdm
 
 from .graph_attributes import NodeAttr
@@ -19,8 +18,8 @@ def nodes_from_segmentation(
     segmentation: np.ndarray,
     intensity_image: np.ndarray | None = None,
     scale: list[float] | None = None,
-    features: list[float] | None = [], 
-    seg_hypo=None    
+    features: list[float] | None = [],
+    seg_hypo=None,
 ) -> tuple[nx.DiGraph, dict[int, list[Any]]]:
     """Extract candidate nodes from a segmentation. Returns a networkx graph
     with only nodes, and also a dictionary from frames to node_ids for
@@ -31,7 +30,7 @@ def nodes_from_segmentation(
         - position
         - segmentation id
         - additional measurement features, which may include:
-            [2D labels] 
+            [2D labels]
             - pixel_count
             - area
             - intensity_mean
@@ -78,28 +77,48 @@ def nodes_from_segmentation(
             len(scale) == segmentation.ndim
         ), f"Scale {scale} should have {segmentation.ndim} dims"
 
-    features_2D = ["pixel_count", "area", "intensity_mean", "axes", "perimeter", "circularity"]
-    features_3D = ["voxel_count", "volume", "intensity_mean", "axes", "surface_area", "sphericity"]
+    features_2D = [
+        "pixel_count",
+        "area",
+        "intensity_mean",
+        "axes",
+        "perimeter",
+        "circularity",
+    ]
+    features_3D = [
+        "voxel_count",
+        "volume",
+        "intensity_mean",
+        "axes",
+        "surface_area",
+        "sphericity",
+    ]
 
     shape = segmentation.shape
     if len(shape) == 4:
         features = [feature for feature in features if feature in features_3D]
-    if len(shape) == 3: 
+    if len(shape) == 3:
         features = [feature for feature in features if feature in features_2D]
-        if 'axes' in features: 
-            features.remove('axes')
-            features.extend(['axis_major_length', 'axis_minor_length'])
-    if intensity_image is None and 'intensity_mean' in features:
-        features.remove('intensity_mean')
+        if "axes" in features:
+            features.remove("axes")
+            features.extend(["axis_major_length", "axis_minor_length"])
+    if intensity_image is None and "intensity_mean" in features:
+        features.remove("intensity_mean")
 
     for t in tqdm(range(len(segmentation))):
         segs = segmentation[t]
         nodes_in_frame = []
-        if intensity_image is not None: 
+        if intensity_image is not None:
             if isinstance(intensity_image, da.core.Array):
-                props = regionprops_extended(segs, spacing=tuple(scale[1:]), intensity_image=intensity_image[t].compute())
-            else:  
-                props = regionprops_extended(segs, spacing=tuple(scale[1:]), intensity_image=intensity_image[t])
+                props = regionprops_extended(
+                    segs,
+                    spacing=tuple(scale[1:]),
+                    intensity_image=intensity_image[t].compute(),
+                )
+            else:
+                props = regionprops_extended(
+                    segs, spacing=tuple(scale[1:]), intensity_image=intensity_image[t]
+                )
         else:
             props = regionprops_extended(segs, spacing=tuple(scale[1:]))
         for regionprop in props:
@@ -107,9 +126,13 @@ def nodes_from_segmentation(
             attrs = {NodeAttr.TIME.value: t}
             attrs[NodeAttr.SEG_ID.value] = regionprop.label
 
-            for feature in features: 
-                if feature == 'axes':
-                    attrs['axis_major_length'], attrs['axis_semi_minor_length'], attrs['axis_minor_length'] = regionprop['axes']
+            for feature in features:
+                if feature == "axes":
+                    (
+                        attrs["axis_major_length"],
+                        attrs["axis_semi_minor_length"],
+                        attrs["axis_minor_length"],
+                    ) = regionprop["axes"]
                 else:
                     attrs[feature] = regionprop[feature]
 

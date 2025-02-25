@@ -26,6 +26,7 @@ class NodeAttr(Enum):
     SURFACE_AREA: str = "surface_area"
     SPHERICITY: str = "sphericity"
 
+
 class EdgeAttr(Enum):
     """Edge attributes that can be added to candidate graph using the toolbox.
     Note: Motile can flexibly support any custom attributes. The toolbox provides
