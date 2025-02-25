@@ -41,7 +41,9 @@ def compute_graph_from_seg(
         nx.DiGraph: A candidate graph that can be passed to the motile solver
     """
     # add nodes
-    cand_graph, node_frame_dict = nodes_from_segmentation(segmentation, intensity_image=intensity_image, scale=scale, features=features)
+    cand_graph, node_frame_dict = nodes_from_segmentation(
+        segmentation, intensity_image=intensity_image, scale=scale, features=features
+    )
     logger.info(f"Candidate nodes: {cand_graph.number_of_nodes()}")
 
     # add edges
@@ -92,7 +94,10 @@ def compute_graph_from_multiseg(
     node_frame_dict: dict[int, Any] = {}
     for hypo_id, seg in enumerate(segmentations):
         seg_node_graph, seg_node_frame_dict = nodes_from_segmentation(
-            seg, scale=scale, seg_hypo=hypo_id, features=["area", "volume"],
+            seg,
+            scale=scale,
+            seg_hypo=hypo_id,
+            features=["area", "volume"],
         )
         cand_graph.update(seg_node_graph)
         for frame, nodes in seg_node_frame_dict.items():

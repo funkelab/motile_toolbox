@@ -26,7 +26,8 @@ def test_nodes_from_segmentation_empty():
 def test_nodes_from_segmentation_2d(segmentation_2d):
     # test with 2D segmentation
     node_graph, node_frame_dict = nodes_from_segmentation(
-        segmentation=segmentation_2d, features=["area"],
+        segmentation=segmentation_2d,
+        features=["area"],
     )
     assert Counter(list(node_graph.nodes)) == Counter([1, 2, 3])
     assert node_graph.nodes[2][NodeAttr.SEG_ID.value] == 2
@@ -39,7 +40,9 @@ def test_nodes_from_segmentation_2d(segmentation_2d):
 
     # test with scaling
     node_graph, node_frame_dict = nodes_from_segmentation(
-        segmentation=segmentation_2d, scale=[1, 1, 2], features=["area"],
+        segmentation=segmentation_2d,
+        scale=[1, 1, 2],
+        features=["area"],
     )
     assert Counter(list(node_graph.nodes)) == Counter([1, 2, 3])
     assert node_graph.nodes[2][NodeAttr.SEG_ID.value] == 2
@@ -54,7 +57,8 @@ def test_nodes_from_segmentation_2d(segmentation_2d):
 def test_nodes_from_segmentation_3d(segmentation_3d):
     # test with 3D segmentation
     node_graph, node_frame_dict = nodes_from_segmentation(
-        segmentation=segmentation_3d, features=["volume"],
+        segmentation=segmentation_3d,
+        features=["volume"],
     )
     assert Counter(list(node_graph.nodes)) == Counter([1, 2, 3])
     assert node_graph.nodes[2][NodeAttr.SEG_ID.value] == 2
@@ -67,7 +71,9 @@ def test_nodes_from_segmentation_3d(segmentation_3d):
 
     # test with scaling
     node_graph, node_frame_dict = nodes_from_segmentation(
-        segmentation=segmentation_3d, scale=[1, 1, 4.5, 1], features=["volume"],
+        segmentation=segmentation_3d,
+        scale=[1, 1, 4.5, 1],
+        features=["volume"],
     )
     assert Counter(list(node_graph.nodes)) == Counter([1, 2, 3])
     assert node_graph.nodes[2][NodeAttr.SEG_ID.value] == 2
