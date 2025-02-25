@@ -26,7 +26,7 @@ def test_nodes_from_segmentation_empty():
 def test_nodes_from_segmentation_2d(segmentation_2d):
     # test with 2D segmentation
     node_graph, node_frame_dict = nodes_from_segmentation(
-        segmentation=segmentation_2d,
+        segmentation=segmentation_2d, features=["area"],
     )
     assert Counter(list(node_graph.nodes)) == Counter([1, 2, 3])
     assert node_graph.nodes[2][NodeAttr.SEG_ID.value] == 2
@@ -39,7 +39,7 @@ def test_nodes_from_segmentation_2d(segmentation_2d):
 
     # test with scaling
     node_graph, node_frame_dict = nodes_from_segmentation(
-        segmentation=segmentation_2d, scale=[1, 1, 2]
+        segmentation=segmentation_2d, scale=[1, 1, 2], features=["area"],
     )
     assert Counter(list(node_graph.nodes)) == Counter([1, 2, 3])
     assert node_graph.nodes[2][NodeAttr.SEG_ID.value] == 2
@@ -54,12 +54,12 @@ def test_nodes_from_segmentation_2d(segmentation_2d):
 def test_nodes_from_segmentation_3d(segmentation_3d):
     # test with 3D segmentation
     node_graph, node_frame_dict = nodes_from_segmentation(
-        segmentation=segmentation_3d,
+        segmentation=segmentation_3d, features=["volume"],
     )
     assert Counter(list(node_graph.nodes)) == Counter([1, 2, 3])
     assert node_graph.nodes[2][NodeAttr.SEG_ID.value] == 2
     assert node_graph.nodes[2][NodeAttr.TIME.value] == 1
-    assert node_graph.nodes[2][NodeAttr.AREA.value] == 4169
+    assert node_graph.nodes[2][NodeAttr.VOLUME.value] == 4169
     assert node_graph.nodes[2][NodeAttr.POS.value] == (20, 50, 80)
 
     assert node_frame_dict[0] == [1]
@@ -67,11 +67,11 @@ def test_nodes_from_segmentation_3d(segmentation_3d):
 
     # test with scaling
     node_graph, node_frame_dict = nodes_from_segmentation(
-        segmentation=segmentation_3d, scale=[1, 1, 4.5, 1]
+        segmentation=segmentation_3d, scale=[1, 1, 4.5, 1], features=["volume"],
     )
     assert Counter(list(node_graph.nodes)) == Counter([1, 2, 3])
     assert node_graph.nodes[2][NodeAttr.SEG_ID.value] == 2
-    assert node_graph.nodes[2][NodeAttr.AREA.value] == 4169 * 4.5
+    assert node_graph.nodes[2][NodeAttr.VOLUME.value] == 4169 * 4.5
     assert node_graph.nodes[2][NodeAttr.TIME.value] == 1
     assert node_graph.nodes[2][NodeAttr.POS.value] == (20.0, 225.0, 80.0)
 

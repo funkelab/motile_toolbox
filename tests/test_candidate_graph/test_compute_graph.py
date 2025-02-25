@@ -19,6 +19,7 @@ def test_graph_from_segmentation_2d(segmentation_2d, graph_2d):
         segmentation=segmentation_2d,
         max_edge_distance=100,
         iou=True,
+        features=["area"],
     )
     assert Counter(list(cand_graph.nodes)) == Counter(list(graph_2d.nodes))
     assert Counter(list(cand_graph.edges)) == Counter(list(graph_2d.edges))
@@ -35,6 +36,7 @@ def test_graph_from_segmentation_2d(segmentation_2d, graph_2d):
     cand_graph = compute_graph_from_seg(
         segmentation=segmentation_2d,
         max_edge_distance=15,
+        features=["area"],
     )
     assert Counter(list(cand_graph.nodes)) == Counter([1, 2, 3])
     assert Counter(list(cand_graph.edges)) == Counter([(1, 3)])
@@ -45,6 +47,7 @@ def test_graph_from_segmentation_3d(segmentation_3d, graph_3d):
     cand_graph = compute_graph_from_seg(
         segmentation=segmentation_3d,
         max_edge_distance=100,
+        features=["volume"],
     )
     assert Counter(list(cand_graph.nodes)) == Counter(list(graph_3d.nodes))
     assert Counter(list(cand_graph.edges)) == Counter(list(graph_3d.edges))

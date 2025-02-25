@@ -266,7 +266,7 @@ def graph_3d():
                 NodeAttr.POS.value: (50, 50, 50),
                 NodeAttr.TIME.value: 0,
                 NodeAttr.SEG_ID.value: 1,
-                NodeAttr.AREA.value: 33401,
+                NodeAttr.VOLUME.value: 33401,
             },
         ),
         (
@@ -275,7 +275,7 @@ def graph_3d():
                 NodeAttr.POS.value: (20, 50, 80),
                 NodeAttr.TIME.value: 1,
                 NodeAttr.SEG_ID.value: 2,
-                NodeAttr.AREA.value: 4169,
+                NodeAttr.VOLUME.value: 4169,
             },
         ),
         (
@@ -284,7 +284,7 @@ def graph_3d():
                 NodeAttr.POS.value: (60, 50, 45),
                 NodeAttr.TIME.value: 1,
                 NodeAttr.SEG_ID.value: 3,
-                NodeAttr.AREA.value: 14147,
+                NodeAttr.VOLUME.value: 14147,
             },
         ),
     ]
