@@ -9,9 +9,12 @@ A suite of tools for helping to run tracking with [motile](https://funkelab.gith
 API documentation available at: https://funkelab.github.io/motile_toolbox.
 
 
-## Install Motile Toolbox
-Motile Toolbox depends on [motile](https://github.com/funkelab/motile), which in turn depends on gurobi and ilpy. These dependencies must be installed with conda before installing motile toolbox with pip.
+## Installation
+`pip install motile-toolbox`
+
+Or, using `uv` to install from source:
 ```
-conda install -c conda-forge -c funkelab -c gurobi ilpy
-pip install motile-toolbox
+git clone https://github.com/funkelab/motile_toolbox.git
+cd motile_toolbox
+uv sync
 ```

@@ -27,16 +27,19 @@ dependencies = [
   "plotly",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
+test = [
+    "pytest",
+    "pytest-cov",
+    "pytest-unordered",
+]
 dev = [
-  'pytest',
-  'pytest-cov',
-  'mypy',
-  'pdoc',
-  'pre-commit',
-  'types-tqdm',
-  'pytest-unordered',
-  'ruff',
+    "pre-commit",
+    "ruff",
+    "mypy",
+    "pdoc",
+    "types-tqdm",
+    {include-group = "test"},
 ]
 
 [project.urls]

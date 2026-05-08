@@ -120,5 +120,8 @@ dmypy.json
 pyrepo
 .vscode/
 
+# uv
+uv.lock
+
 # OS Files
 .DS_Store
