@@ -53,9 +53,9 @@ def nodes_from_segmentation(
             1,
         ] * segmentation.ndim
     else:
-        assert (
-            len(scale) == segmentation.ndim
-        ), f"Scale {scale} should have {segmentation.ndim} dims"
+        assert len(scale) == segmentation.ndim, (
+            f"Scale {scale} should have {segmentation.ndim} dims"
+        )
 
     for t in tqdm(range(len(segmentation))):
         segs = segmentation[t]
@@ -106,9 +106,9 @@ def nodes_from_points_list(
 
     # scale points
     if scale is not None:
-        assert (
-            len(scale) == points_list.shape[1]
-        ), f"Cannot scale points with {points_list.shape[1]} dims by factor {scale}"
+        assert len(scale) == points_list.shape[1], (
+            f"Cannot scale points with {points_list.shape[1]} dims by factor {scale}"
+        )
         points_list = points_list * np.array(scale)
 
     # add points to graph

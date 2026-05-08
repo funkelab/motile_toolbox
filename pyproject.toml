@@ -1,12 +1,12 @@
 [build-system]
-build-backend = "setuptools.build_meta"
-requires = ["setuptools>=64", "wheel", "setuptools_scm>=8"]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
 
 [project]
 name = "motile_toolbox"
-description = "A toolbox for tracking with (motile)[https://github.com/funkelab/motile]."
+description = "A toolbox for tracking with [motile](https://github.com/funkelab/motile)."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 classifiers = [
   "Programming Language :: Python :: 3",
 ]
@@ -27,23 +27,30 @@ dependencies = [
   "plotly",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
+test = [
+    "pytest",
+    "pytest-cov",
+    "pytest-unordered",
+]
 dev = [
-  'pytest',
-  'pytest-cov',
-  'mypy',
-  'pdoc',
-  'pre-commit',
-  'types-tqdm',
-  'pytest-unordered',
-  'ruff',
+    "pre-commit",
+    "ruff",
+    "mypy",
+    "pdoc",
+    "types-tqdm",
+    {include-group = "test"},
 ]
 
 [project.urls]
 homepage = "https://github.com/funkelab/motile_toolbox"
 repository = "https://github.com/funkelab/motile_toolbox"
 
-[tool.setuptools_scm]
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/motile_toolbox"]
 
 [tool.coverage.run]
 omit = ["src/motile_toolbox/visualization/*"]
@@ -51,7 +58,7 @@ omit = ["src/motile_toolbox/visualization/*"]
 # https://github.com/charliermarsh/ruff
 [tool.ruff]
 line-length = 88
-target-version = "py310"
+target-version = "py311"
 
 [tool.ruff.lint]
 select = [
@@ -85,3 +92,8 @@ unfixable = [
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[tool.mypy]
+files = "src/**/"
+pretty = true
+ignore_missing_imports = true

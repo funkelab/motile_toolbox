@@ -2,8 +2,9 @@ import motile
 import networkx as nx
 import numpy as np
 import pytest
-from motile_toolbox.candidate_graph.graph_attributes import EdgeAttr, NodeAttr
 from skimage.draw import disk
+
+from motile_toolbox.candidate_graph.graph_attributes import EdgeAttr, NodeAttr
 
 
 @pytest.fixture

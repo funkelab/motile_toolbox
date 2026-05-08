@@ -1,8 +1,0 @@
-name: motile_toolbox
-channels:
-  - conda-forge
-  - funkelab
-  - gurobi
-  - defaults
-dependencies:
-  - ilpy

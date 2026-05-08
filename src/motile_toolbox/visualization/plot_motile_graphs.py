@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, Mapping, overload
+from collections.abc import Callable, Mapping
+from typing import TYPE_CHECKING, Any, overload
 
 import numpy as np
 
@@ -28,7 +29,7 @@ def _attr_hover_text(attrs: Mapping) -> str:
     return "<br>".join([f"{name}: {value}" for name, value in attrs.items()])
 
 
-def draw_track_graph(
+def draw_track_graph(  # noqa: C901
     graph: TrackGraph,
     position_attribute: str | None = None,
     position_func: ReturnsFloat | None = None,
@@ -222,49 +223,49 @@ def draw_track_graph(
 
     arrows = []
     for ((u, v), attrs), label, color in zip(
-        graph.edges.items(), edge_labels, edge_colors
+        graph.edges.items(), edge_labels, edge_colors, strict=True
     ):
         start = node_positions[sorted(graph.nodes).index(u), (0, 1)]
         end = node_positions[sorted(graph.nodes).index(v), (0, 1)]
         mid = 0.6 * start + 0.4 * end
         first_half = go.layout.Annotation(
-            dict(
-                ax=start[0],
-                ay=start[1],
-                x=mid[0],
-                y=mid[1],
-                xref="x",
-                yref="y",
-                showarrow=True,
-                startstandoff=node_size * 0.5,
-                axref="x",
-                ayref="y",
-                arrowhead=0,
-                arrowwidth=4,
-                arrowcolor=color,
-            )
+            {
+                "ax": start[0],
+                "ay": start[1],
+                "x": mid[0],
+                "y": mid[1],
+                "xref": "x",
+                "yref": "y",
+                "showarrow": True,
+                "startstandoff": node_size * 0.5,
+                "axref": "x",
+                "ayref": "y",
+                "arrowhead": 0,
+                "arrowwidth": 4,
+                "arrowcolor": color,
+            }
         )
         second_half = go.layout.Annotation(
-            dict(
-                ax=mid[0],
-                ay=mid[1],
-                x=end[0],
-                y=end[1],
-                xref="x",
-                yref="y",
-                text=label,
-                font={"color": "white"},
-                hovertext=_attr_hover_text(attrs),
-                bgcolor=color,
-                showarrow=True,
-                standoff=node_size * 0.6,
-                axref="x",
-                ayref="y",
-                arrowhead=2,
-                arrowwidth=4,
-                arrowsize=0.6,
-                arrowcolor=color,
-            )
+            {
+                "ax": mid[0],
+                "ay": mid[1],
+                "x": end[0],
+                "y": end[1],
+                "xref": "x",
+                "yref": "y",
+                "text": label,
+                "font": {"color": "white"},
+                "hovertext": _attr_hover_text(attrs),
+                "bgcolor": color,
+                "showarrow": True,
+                "standoff": node_size * 0.6,
+                "axref": "x",
+                "ayref": "y",
+                "arrowhead": 2,
+                "arrowwidth": 4,
+                "arrowsize": 0.6,
+                "arrowcolor": color,
+            }
         )
 
         arrows.append(first_half)
@@ -330,7 +331,7 @@ def _to_rgba(
     """Convert a color to a rgba string."""
     if isinstance(color, list):
         if isinstance(alpha, list):
-            return [_to_rgba(c, a) for c, a in zip(color, alpha)]
+            return [_to_rgba(c, a) for c, a in zip(color, alpha, strict=True)]
         else:  # only color is list
             return [_to_rgba(c, alpha) for c in color]
     elif isinstance(alpha, list):  # only alpha is list
