@@ -1,6 +1,7 @@
 import numpy as np
-from motile_toolbox.candidate_graph.conflict_sets import compute_conflict_sets
 from pytest_unordered import unordered
+
+from motile_toolbox.candidate_graph.conflict_sets import compute_conflict_sets
 
 
 def test_conflict_sets_2d(multi_hypothesis_segmentation_2d):

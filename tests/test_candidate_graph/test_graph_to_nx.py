@@ -1,7 +1,8 @@
 import networkx as nx
 from motile import TrackGraph
-from motile_toolbox.candidate_graph import graph_to_nx
 from networkx.utils import graphs_equal
+
+from motile_toolbox.candidate_graph import graph_to_nx
 
 
 def test_graph_to_nx(graph_3d: nx.DiGraph):

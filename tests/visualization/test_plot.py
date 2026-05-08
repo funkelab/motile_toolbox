@@ -1,6 +1,7 @@
 import motile
 import pytest
 from motile.costs import Appear, EdgeSelection, NodeSelection, Split
+
 from motile_toolbox.visualization import draw_solution, draw_track_graph
 
 try:

@@ -2,6 +2,7 @@ from collections import Counter
 
 import numpy as np
 import pytest
+
 from motile_toolbox.candidate_graph import (
     EdgeAttr,
     compute_graph_from_multiseg,
@@ -58,7 +59,7 @@ def test_graph_from_multi_segmentation_2d(
     multi_hypothesis_segmentation_2d, multi_hypothesis_graph_2d
 ):
     # test with 2D segmentation
-    cand_graph, conflict_set = compute_graph_from_multiseg(
+    cand_graph, _conflict_set = compute_graph_from_multiseg(
         segmentations=multi_hypothesis_segmentation_2d,
         max_edge_distance=100,
         iou=True,

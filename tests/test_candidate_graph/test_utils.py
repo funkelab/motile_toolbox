@@ -2,6 +2,7 @@ from collections import Counter
 
 import networkx as nx
 import numpy as np
+
 from motile_toolbox.candidate_graph import (
     NodeAttr,
     add_cand_edges,
@@ -112,7 +113,7 @@ def test_nodes_from_points_list_2d():
             [1, 2, 3, 4],
         ]
     )
-    cand_graph, node_frame_dict = nodes_from_points_list(points_list)
+    cand_graph, _node_frame_dict = nodes_from_points_list(points_list)
     assert Counter(list(cand_graph.nodes)) == Counter([0, 1, 2])
     assert cand_graph.nodes[0][NodeAttr.TIME.value] == 0
     assert (cand_graph.nodes[0][NodeAttr.POS.value] == np.array([1, 2, 3])).all()

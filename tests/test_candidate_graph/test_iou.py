@@ -1,5 +1,6 @@
 import networkx as nx
 import pytest
+
 from motile_toolbox.candidate_graph import EdgeAttr, add_iou
 from motile_toolbox.candidate_graph.iou import _compute_ious
 

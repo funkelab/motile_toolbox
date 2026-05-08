@@ -1,11 +1,12 @@
 import numpy as np
 import pytest
+from numpy.testing import assert_array_equal
+from skimage.draw import disk
+
 from motile_toolbox.utils import (
     ensure_unique_labels,
     relabel_segmentation_with_track_id,
 )
-from numpy.testing import assert_array_equal
-from skimage.draw import disk
 
 
 @pytest.fixture
