@@ -1,8 +1,6 @@
 # motile_toolbox
 
 [![tests](https://github.com/funkelab/motile_toolbox/actions/workflows/tests.yaml/badge.svg)](https://github.com/funkelab/motile_toolbox/actions/workflows/tests.yaml)
-[![black](https://github.com/funkelab/motile_toolbox/actions/workflows/black.yaml/badge.svg)](https://github.com/funkelab/motile_toolbox/actions/workflows/black.yaml)
-[![mypy](https://github.com/funkelab/motile_toolbox/actions/workflows/mypy.yaml/badge.svg)](https://github.com/funkelab/motile_toolbox/actions/workflows/mypy.yaml)
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/funkelab/motile_toolbox/main.svg)](https://results.pre-commit.ci/latest/github/funkelab/motile_toolbox/main)
 [![codecov](https://codecov.io/gh/funkelab/motile_toolbox/branch/main/graph/badge.svg)](https://codecov.io/gh/funkelab/motile_toolbox)
 
