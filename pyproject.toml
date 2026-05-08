@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "motile_toolbox"
-description = "A toolbox for tracking with (motile)[https://github.com/funkelab/motile]."
+description = "A toolbox for tracking with [motile](https://github.com/funkelab/motile)."
 readme = "README.md"
 requires-python = ">=3.11"
 classifiers = [
