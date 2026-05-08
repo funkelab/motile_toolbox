@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "motile_toolbox"
 description = "A toolbox for tracking with (motile)[https://github.com/funkelab/motile]."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 classifiers = [
   "Programming Language :: Python :: 3",
 ]
@@ -58,7 +58,7 @@ omit = ["src/motile_toolbox/visualization/*"]
 # https://github.com/charliermarsh/ruff
 [tool.ruff]
 line-length = 88
-target-version = "py310"
+target-version = "py311"
 
 [tool.ruff.lint]
 select = [
