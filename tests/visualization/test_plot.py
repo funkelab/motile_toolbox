@@ -1,6 +1,11 @@
 import motile
 import pytest
-from motile.costs import Appear, EdgeSelection, NodeSelection, Split
+from motile.costs import (
+    EdgeSelectedCost,
+    NodeAppearCost,
+    NodeSelectedCost,
+    NodeSplitCost,
+)
 
 from motile_toolbox.visualization import draw_solution, draw_track_graph
 
@@ -13,10 +18,10 @@ except ImportError:
 @pytest.fixture
 def solver(arlo_graph: motile.TrackGraph) -> motile.Solver:
     solver = motile.Solver(arlo_graph)
-    solver.add_cost(NodeSelection(weight=-1.0, attribute="score", constant=-100.0))
-    solver.add_cost(EdgeSelection(weight=1.0, attribute="prediction_distance"))
-    solver.add_cost(Appear(constant=200.0))
-    solver.add_cost(Split(constant=100.0))
+    solver.add_cost(NodeSelectedCost(weight=-1.0, attribute="score", constant=-100.0))
+    solver.add_cost(EdgeSelectedCost(weight=1.0, attribute="prediction_distance"))
+    solver.add_cost(NodeAppearCost(constant=200.0))
+    solver.add_cost(NodeSplitCost(constant=100.0))
     return solver
 
 
